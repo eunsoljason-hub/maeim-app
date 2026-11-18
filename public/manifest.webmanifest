@@ -1,0 +1,54 @@
+{
+  "name": "마음명상 — 명상 · 마음일기 · 3분 상담",
+  "short_name": "마음명상",
+  "description": "3분이면 시작되는 마음 돌봄. 명상 코스, 마음일기, 은솔님과의 1:1 마이크로 리스닝 상담.",
+  "lang": "ko",
+  "dir": "ltr",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#F7F2E9",
+  "theme_color": "#F7F2E9",
+  "categories": ["health", "lifestyle", "medical"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "10분 명상 시작",
+      "short_name": "명상",
+      "url": "/player/c10",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "마음일기 쓰기",
+      "short_name": "마음일기",
+      "url": "/diary"
+    },
+    {
+      "name": "1:1 상담 예약",
+      "short_name": "상담",
+      "url": "/counseling"
+    }
+  ]
+}
