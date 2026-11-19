@@ -3482,6 +3482,12 @@ select {
   word-break: keep-all;
 }
 
+/* 상단 부제를 걷어낸 화면(명상·시각화): 제목 아래 호흡만 남긴다 */
+.view-head + .med-block,
+.view-head + .vis-cats {
+  margin-top: 28px;
+}
+
 .tip-card {
   margin-top: 22px;
   padding: 16px;
@@ -5091,28 +5097,39 @@ select {
 }
 
 /* 지난 기록 — 누르면 고치기 */
-.entry .entry-edit {
-  position: absolute;
-  right: 42px;
-  top: 10px;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
+.entry .entry-actions {
   display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.entry .entry-edit {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(78, 107, 91, 0.28);
+  background: var(--sage-wash);
+  color: var(--sage);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.entry .entry-edit span {
   font-size: 13px;
-  color: var(--muted);
 }
 
 .entry .entry-edit:active {
-  color: var(--sage);
+  background: rgba(78, 107, 91, 0.16);
 }
 
 .entry .entry-open {
   display: block;
   width: 100%;
-  padding-right: 64px;
+  padding-right: 46px;
   text-align: left;
 }
 

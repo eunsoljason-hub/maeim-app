@@ -575,14 +575,6 @@ export function DiaryScreen() {
               <article key={entry.id} className="entry">
                 <button
                   type="button"
-                  className="entry-edit"
-                  onClick={() => openEdit(entry)}
-                  aria-label={t("diary.editTitle")}
-                >
-                  ✎
-                </button>
-                <button
-                  type="button"
                   className={`del ${confirmId === entry.id ? "confirm" : ""}`}
                   onClick={() => onDelete(entry.id)}
                   aria-label={t("common.delete")}
@@ -627,6 +619,17 @@ export function DiaryScreen() {
                     ))}
                   </div>
                 ) : null}
+
+                <div className="entry-actions">
+                  <button
+                    type="button"
+                    className="entry-edit"
+                    onClick={() => openEdit(entry)}
+                    aria-label={t("diary.editTitle")}
+                  >
+                    <span aria-hidden="true">✎</span> {t("common.edit")}
+                  </button>
+                </div>
               </article>
             );
           })

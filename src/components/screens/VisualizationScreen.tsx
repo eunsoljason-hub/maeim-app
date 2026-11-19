@@ -93,7 +93,6 @@ export function VisualizationScreen() {
           <span className="tag">{t("vis.tag")}</span>
         </div>
       </header>
-      <p className="view-lead">{t("vis.lead")}</p>
 
       <nav className="vis-cats" aria-label={t("vis.title")}>
         {VISUALIZATION_GROUPS.map((item) => {

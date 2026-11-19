@@ -21,7 +21,6 @@ export function MeditationScreen() {
           <span className="tag">{t("med.tag")}</span>
         </div>
       </header>
-      <p className="view-lead">{t("med.lead")}</p>
 
       {MEDITATION_BUCKETS.map((bucket) => {
         const courses = meditationCoursesFor(bucket.minutes);
