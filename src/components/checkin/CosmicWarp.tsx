@@ -70,6 +70,12 @@ export function CosmicWarp({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const doneRef = useRef(false);
   const [leaving, setLeaving] = useState(false);
+  /* 부모가 다시 렌더돼도 애니메이션이 처음부터 다시 시작하지 않도록
+     onDone은 ref에 담아 두고, 연출 effect는 마운트 때 한 번만 돌린다. */
+  const onDoneRef = useRef(onDone);
+  useEffect(() => {
+    onDoneRef.current = onDone;
+  }, [onDone]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -252,7 +258,7 @@ export function CosmicWarp({
         if (doneRef.current) return;
         doneRef.current = true;
         stopWarpAudio(0.7);
-        onDone();
+        onDoneRef.current();
       },
       reduce ? 2100 : WARP_MS,
     );
@@ -263,13 +269,14 @@ export function CosmicWarp({
       window.clearTimeout(doneTimer);
       window.removeEventListener("resize", layout);
     };
-  }, [onDone]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const finish = () => {
     if (doneRef.current) return;
     doneRef.current = true;
     stopWarpAudio(0.35);
-    onDone();
+    onDoneRef.current();
   };
 
   return (
