@@ -68,11 +68,7 @@ export function LifeDirectionBanner({ compact = false }: { compact?: boolean }) 
       className={`direction-banner ${compact ? "compact" : ""}`}
       aria-label={t("direction.label")}
     >
-      <div className="direction-mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <path d="M12 3.5 14.6 9l6 .9-4.3 4.2 1 6-5.3-2.8L6.7 20l1-6L3.4 9.9 9.4 9z" />
-        </svg>
-      </div>
+      <span className="direction-accent" aria-hidden="true" />
       {editing ? (
         <div className="direction-edit">
           <textarea
@@ -102,7 +98,10 @@ export function LifeDirectionBanner({ compact = false }: { compact?: boolean }) 
         </div>
       ) : (
         <div className="direction-body">
-          <span className="direction-label">{t("direction.label")}</span>
+          <div className="direction-labelrow">
+            <span className="direction-label">{t("direction.label")}</span>
+            <span className="direction-rule" aria-hidden="true" />
+          </div>
           <p className="direction-text">{ready ? text || t("direction.default") : t("direction.default")}</p>
         </div>
       )}

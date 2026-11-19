@@ -42,3 +42,5 @@ next-env.d.ts
 # local test artifacts
 /screenshots
 .next-old
+
+.next-stale-*

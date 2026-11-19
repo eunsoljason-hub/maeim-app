@@ -68,21 +68,20 @@ const ko: Dict = {
 
   /* checkin */
   "checkin.brand": "인유 · InYou",
-  "checkin.title1": "잠깐, 지금의 나를",
-  "checkin.title2": "먼저 만나볼까요?",
+  "checkin.title": "당신의 내면에 집중해 보세요",
   "checkin.sub": "기분과 에너지를 고르면, 당신의 내면으로 들어가는 문이 열려요.",
   "checkin.mood": "지금의 기분",
   "checkin.moodHint": "가장 가까운 하나",
   "checkin.energy": "에너지 레벨",
-  "checkin.start": "내면으로 들어가기",
+  "checkin.start": "IN YOU 당신안으로",
   "checkin.later": "나중에 할게요",
   "checkin.foot": "기록은 이 기기에만 저장돼요. 언제든 다시 체크인할 수 있어요.",
   "checkin.error": "지금의 기분을 하나만 골라주세요.",
 
   /* cosmic */
   "cosmic.kicker": "INYOU · 내면으로",
-  "cosmic.message": "지금부터 당신의 내면을 들여다보도록 하겠습니다",
-  "cosmic.sub": "잠시만, 숨을 고르고 들어갑니다.",
+  "cosmic.message": "지금, 여기, 당신에게 집중해보세요",
+  "cosmic.sub": "숨을 깊게 들어마셨다가 내쉬세요", 
   "cosmic.skip": "건너뛰기",
 
   /* tabs */
@@ -102,10 +101,8 @@ const ko: Dict = {
   "hub.checkAgain": "오늘 체크인 다시하기",
   "hub.checkinLine": "오늘의 체크인 · {mood} · 에너지 {energy}/5",
   "hub.kicker": "INYOU · INNER SPACE",
-  "hub.message1": "이제 여긴 당신의 내면입니다.",
-  "hub.message2": "에고를 벗어나 내면에 집중하는 시간입니다.",
-  "hub.messageSub":
-    "세 가지 문 중 오늘 끌리는 곳으로 들어가 보세요. 어디로 들어가도, 끝에는 마음기록이 기다리고 있어요.",
+  "hub.message1": "인유. 여기는 당신의 내면입니다.",
+  "hub.message2": "에고를 벗어나 내면에 집중하는 시간", 
   "hub.sessions": "세션 선택",
   "hub.vis.kicker": "상상으로 여는",
   "hub.vis.desc": "아침 · 비우기 · 소망",
@@ -447,7 +444,7 @@ const ko: Dict = {
   "player.bgmFine": "음원은 Pixabay 페이지에서 내려받아 오프라인 배포에 쓸 수 있어요. 파일을 단독으로 재판매·재배포하는 것만 금지됩니다.",
 
   /* direction banner */
-  "direction.label": "나의 삶의 방향",
+  "direction.label": "VISION",
   "direction.default": "나는 나만의 속도로, 사랑하는 사람들과 오래 웃으며 살아갑니다.",
   "direction.ph": "내가 향하는 삶의 방향, 오늘 지키고 싶은 한 문장",
   "direction.save": "저장",
@@ -654,20 +651,19 @@ const en: Dict = {
   "energy.label": "Energy",
 
   "checkin.brand": "InYou · Inner Space",
-  "checkin.title1": "Before anything else,",
-  "checkin.title2": "how are you right now?",
+  "checkin.title": "Focus on your inner world",
   "checkin.sub": "Choose your mood and energy, and a door into your inner world will open.",
   "checkin.mood": "Right now, I feel",
   "checkin.moodHint": "Pick the closest one",
   "checkin.energy": "Energy level",
-  "checkin.start": "Enter my inner space",
+  "checkin.start": "IN YOU · Step inside",
   "checkin.later": "Maybe later",
   "checkin.foot": "Everything stays on this device. You can check in again anytime.",
   "checkin.error": "Please choose how you feel right now.",
 
   "cosmic.kicker": "INYOU · GOING WITHIN",
-  "cosmic.message": "Now, let's look gently into your inner world.",
-  "cosmic.sub": "Take a breath. We're going in.",
+  "cosmic.message": "Right now, right here, turn to yourself",
+  "cosmic.sub": "Breathe in deeply, then let it out", 
   "cosmic.skip": "Skip",
 
   "tab.home": "Inner",
@@ -685,10 +681,8 @@ const en: Dict = {
   "hub.checkAgain": "Check in again",
   "hub.checkinLine": "Today's check-in · {mood} · energy {energy}/5",
   "hub.kicker": "INYOU · INNER SPACE",
-  "hub.message1": "This is your inner space now.",
-  "hub.message2": "A time to step away from the ego and turn inward.",
-  "hub.messageSub":
-    "Choose whichever door calls to you today. Wherever you go, a journal entry is waiting at the end.",
+  "hub.message1": "InYou. This is your inner world.",
+  "hub.message2": "A time to step away from the ego and focus within", 
   "hub.sessions": "Choose a session",
   "hub.vis.kicker": "Through imagination",
   "hub.vis.desc": "Morning · Letting go · Wish",
@@ -1020,7 +1014,7 @@ const en: Dict = {
   "player.bgmDefaultDesc": "Generated ambience / silent — rain, waves, fireplace",
   "player.bgmFine": "You may download these from Pixabay for offline use. Only reselling or redistributing the files alone is prohibited.",
 
-  "direction.label": "My direction",
+  "direction.label": "VISION",
   "direction.default": "I move at my own pace, laughing often with the people I love.",
   "direction.ph": "The direction I'm heading, one line to keep today",
   "direction.save": "Save",
@@ -1224,20 +1218,19 @@ const ja: Dict = {
   "energy.label": "エネルギー",
 
   "checkin.brand": "InYou · インナースペース",
-  "checkin.title1": "ちょっと立ち止まって、",
-  "checkin.title2": "今のあなたに会いませんか？",
+  "checkin.title": "あなたの内面に集中してみましょう",
   "checkin.sub": "気分とエネルギーを選ぶと、あなたの内面への扉が開きます。",
   "checkin.mood": "今の気分",
   "checkin.moodHint": "いちばん近いものをひとつ",
   "checkin.energy": "エネルギーレベル",
-  "checkin.start": "内面へ入る",
+  "checkin.start": "IN YOU あなたの中へ",
   "checkin.later": "あとで",
   "checkin.foot": "記録はこの端末にのみ保存されます。いつでもチェックインし直せます。",
   "checkin.error": "今の気分をひとつ選んでください。",
 
   "cosmic.kicker": "INYOU · 内面へ",
-  "cosmic.message": "これから、あなたの内面をそっと見つめていきます。",
-  "cosmic.sub": "ひと息ついて、中へ入りましょう。",
+  "cosmic.message": "今、ここ、あなた自身に集中してみてください",
+  "cosmic.sub": "深く息を吸って、ゆっくり吐いてください", 
   "cosmic.skip": "スキップ",
 
   "tab.home": "内面",
@@ -1255,10 +1248,8 @@ const ja: Dict = {
   "hub.checkAgain": "今日のチェックインをやり直す",
   "hub.checkinLine": "今日のチェックイン · {mood} · エネルギー {energy}/5",
   "hub.kicker": "INYOU · INNER SPACE",
-  "hub.message1": "ここは、あなたの内面です。",
-  "hub.message2": "エゴから離れて、内面に集中する時間。",
-  "hub.messageSub":
-    "三つの扉から、今日引き寄せられるものを選んでください。どこに入っても、最後には記録が待っています。",
+  "hub.message1": "InYou。ここはあなたの内面です。",
+  "hub.message2": "エゴから離れ、内面に集中する時間", 
   "hub.sessions": "セッションを選ぶ",
   "hub.vis.kicker": "想像から",
   "hub.vis.desc": "朝 · 手放す · 願い",

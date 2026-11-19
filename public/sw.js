@@ -4,7 +4,7 @@
  * - _next/static, icons: cache first (immutable)
  * - /audio/*: cached on first play so one meditation course keeps working offline
  */
-const VERSION = "inyou-v3";
+const VERSION = "inyou-v4";
 const SHELL_CACHE = `${VERSION}-shell`;
 const STATIC_CACHE = `${VERSION}-static`;
 const PAGE_CACHE = `${VERSION}-pages`;

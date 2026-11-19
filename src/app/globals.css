@@ -2349,19 +2349,50 @@ select {
 
 /* ---------------------------- 삶의 방향 배너 ---------------------------- */
 
+/* VISION — 네모난 박스 대신, 은은한 빛과 가는 선으로만 이루어진 글래스 카드 */
 .direction-banner {
   position: relative;
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 12px 14px;
-  margin: -4px 0 16px;
-  border-radius: 16px;
+  gap: 12px;
+  padding: 15px 16px 16px;
+  margin: -2px 0 8px;
+  border-radius: 20px;
+  overflow: hidden;
   background:
-    linear-gradient(135deg, rgba(78, 107, 91, 0.1), rgba(122, 114, 166, 0.12)),
-    var(--paper);
-  border: 1px solid rgba(78, 107, 91, 0.16);
-  box-shadow: var(--shadow-sm);
+    radial-gradient(120% 140% at 8% -30%, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0) 55%),
+    linear-gradient(145deg, rgba(255, 253, 248, 0.72), rgba(247, 242, 233, 0.42) 52%, rgba(234, 230, 244, 0.44));
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow:
+    0 18px 40px -24px rgba(74, 64, 45, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  backdrop-filter: blur(16px) saturate(120%);
+}
+
+.direction-banner::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(122, 114, 166, 0.28), transparent);
+  pointer-events: none;
+}
+
+/* 왼쪽의 가는 세로 빛줄기 */
+.direction-accent {
+  flex: none;
+  width: 1px;
+  align-self: stretch;
+  margin: 1px 0;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    rgba(199, 162, 104, 0.75),
+    rgba(122, 114, 166, 0.55) 48%,
+    rgba(78, 107, 91, 0.15)
+  );
+  box-shadow: 0 0 12px rgba(199, 162, 104, 0.35);
 }
 
 .direction-mark {
@@ -2390,22 +2421,34 @@ select {
   min-width: 0;
 }
 
+.direction-labelrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .direction-label {
   display: block;
   font-size: 9.5px;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.42em;
   font-weight: 700;
-  color: var(--sage);
+  color: rgba(78, 107, 91, 0.78);
   text-transform: uppercase;
 }
 
+.direction-rule {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(78, 107, 91, 0.22), rgba(78, 107, 91, 0));
+}
+
 .direction-text {
-  margin-top: 3px;
-  font-size: 13px;
-  line-height: 1.5;
+  margin-top: 7px;
+  font-size: 14px;
+  line-height: 1.55;
   font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--ink);
+  letter-spacing: -0.015em;
+  color: #2b2d36;
   word-break: keep-all;
 }
 
@@ -2454,13 +2497,21 @@ select {
 
 .direction-edit-btn {
   flex: none;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid var(--line);
-  color: var(--sub);
-  font-size: 12px;
+  background: transparent;
+  border: 1px solid rgba(38, 40, 47, 0.08);
+  color: rgba(38, 40, 47, 0.32);
+  font-size: 11px;
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.direction-edit-btn:active {
+  color: var(--sage);
+  border-color: rgba(78, 107, 91, 0.3);
 }
 
 /* ------------------------------- 체크인 ------------------------------- */
@@ -2469,11 +2520,13 @@ select {
   position: fixed;
   inset: 0;
   z-index: 400;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
   background:
     radial-gradient(120% 70% at 50% -10%, #2a2f52 0%, #141728 45%, #08090f 100%);
   color: #eef1f6;
-  padding: calc(26px + env(safe-area-inset-top)) 20px calc(30px + env(safe-area-inset-bottom));
+  padding: calc(20px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom));
 }
 
 .checkin-stars {
@@ -2504,8 +2557,12 @@ select {
 
 .checkin-inner {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
   max-width: 430px;
-  margin: 0 auto;
+  /* 여유가 있으면 화면 가운데, 넘치면 자동으로 0이 되어 위쪽이 잘리지 않는다 */
+  margin: auto;
 }
 
 .checkin-brand {
@@ -2517,22 +2574,25 @@ select {
 }
 
 .checkin-head h1 {
-  margin-top: 14px;
-  font-size: 26px;
-  line-height: 1.38;
-  letter-spacing: -0.03em;
+  margin-top: 12px;
+  font-size: 23px;
+  line-height: 1.34;
+  letter-spacing: -0.035em;
   font-weight: 700;
+  word-break: keep-all;
+  text-wrap: balance;
 }
 
 .checkin-sub {
-  margin-top: 10px;
-  font-size: 12.5px;
-  line-height: 1.65;
-  color: rgba(226, 232, 244, 0.62);
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(226, 232, 244, 0.6);
+  word-break: keep-all;
 }
 
 .checkin-block {
-  margin-top: 26px;
+  margin-top: 20px;
 }
 
 .checkin-label {
@@ -2540,10 +2600,10 @@ select {
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   color: rgba(238, 241, 246, 0.86);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .checkin-label .tiny {
@@ -2553,16 +2613,16 @@ select {
 .checkin-moods {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  gap: 7px;
 }
 
 .checkin-mood {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
-  padding: 10px 4px 9px;
-  border-radius: 14px;
+  gap: 4px;
+  padding: 8px 4px 7px;
+  border-radius: 13px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: rgba(238, 241, 246, 0.8);
@@ -2573,12 +2633,12 @@ select {
 }
 
 .checkin-mood .e {
-  font-size: 21px;
+  font-size: 19px;
   line-height: 1;
 }
 
 .checkin-mood .l {
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 600;
 }
 
@@ -2589,47 +2649,82 @@ select {
 }
 
 .checkin-energy {
-  padding: 14px 16px 12px;
+  padding: 12px 14px 13px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.checkin-energy input[type="range"] {
-  width: 100%;
-  accent-color: #b9c8ff;
-  margin: 0;
-}
-
-.checkin-energy-dots {
+/* 에너지 레벨 — 좌우 슬라이더 대신 위아래로 쌓인 5단 (위 = 충만) */
+.energy-stack {
   display: flex;
-  justify-content: space-between;
-  margin-top: 8px;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.checkin-energy-dots span {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.18);
-}
-
-.checkin-energy-dots span.on {
-  background: #c7d4ff;
-}
-
-.checkin-energy-legend {
+.energy-step {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-top: 8px;
-  font-size: 10.5px;
-  color: rgba(220, 226, 240, 0.55);
+  gap: 8px;
+  height: 21px;
+  padding: 0 2px;
+  border-radius: 8px;
+  transition: background 0.18s ease;
 }
 
-.checkin-energy-legend b {
-  color: #e9eefb;
-  font-size: 12px;
+.energy-step .n {
+  width: 9px;
+  flex: none;
+  font-size: 9px;
+  font-weight: 700;
+  text-align: center;
+  color: rgba(214, 222, 244, 0.4);
+  transition: color 0.18s ease;
+}
+
+.energy-step .track {
+  position: relative;
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.09);
+  overflow: hidden;
+}
+
+.energy-step .fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(199, 212, 255, 0.55), rgba(199, 212, 255, 0.8));
+  opacity: 0;
+  transform: scaleX(0.001);
+  transform-origin: left center;
+  transition:
+    opacity 0.2s ease,
+    transform 0.28s cubic-bezier(0.22, 0.8, 0.28, 1);
+}
+
+.energy-step.filled .fill,
+.energy-step.on .fill {
+  opacity: 0.55;
+  transform: scaleX(1);
+}
+
+.energy-step.on .fill {
+  opacity: 1;
+  box-shadow: 0 0 14px rgba(199, 212, 255, 0.55);
+}
+
+.energy-step.on {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.energy-step.on .n {
+  color: #eaf0ff;
+}
+
+.energy-step:active .fill {
+  opacity: 0.9;
 }
 
 .checkin-error {
@@ -2638,32 +2733,35 @@ select {
   color: #ffb4a8;
 }
 
+.checkin-cta {
+  margin-top: 24px;
+}
+
 .checkin-start {
   width: 100%;
-  height: 52px;
-  margin-top: 26px;
-  border-radius: 16px;
+  height: 50px;
+  border-radius: 15px;
   background: linear-gradient(135deg, #d7e2ff, #bcc9f7);
   color: #1b2033;
-  font-size: 14.5px;
+  font-size: 14px;
   font-weight: 800;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.01em;
 }
 
 .checkin-close {
   display: block;
   width: 100%;
-  margin-top: 12px;
+  margin-top: 10px;
   font-size: 11.5px;
   color: rgba(220, 226, 240, 0.5);
   text-align: center;
 }
 
 .checkin-foot {
-  margin-top: 16px;
+  margin-top: 10px;
   text-align: center;
   font-size: 10.5px;
-  line-height: 1.6;
+  line-height: 1.55;
   color: rgba(206, 214, 232, 0.4);
 }
 
@@ -2740,20 +2838,24 @@ select {
 }
 
 .cosmic-message {
-  margin-top: 18px;
-  font-size: 22px;
-  line-height: 1.55;
+  margin-top: 20px;
+  font-size: 23px;
+  line-height: 1.5;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   color: #f2f5ff;
-  text-shadow: 0 0 24px rgba(160, 172, 255, 0.4);
-  max-width: 340px;
+  text-shadow: 0 0 28px rgba(160, 172, 255, 0.45);
+  max-width: 330px;
+  word-break: keep-all;
+  text-wrap: balance;
 }
 
 .cosmic-sub {
-  margin-top: 12px;
+  margin-top: 14px;
   font-size: 11.5px;
-  color: rgba(206, 214, 240, 0.55);
+  letter-spacing: 0.02em;
+  color: rgba(214, 222, 245, 0.6);
+  word-break: keep-all;
 }
 
 .cosmic-skip {
@@ -2812,15 +2914,26 @@ select {
   margin-bottom: 18px;
 }
 
+/* VISION 바로 아래에 붙는 내면 선언 */
 .inner-message {
   position: relative;
   overflow: hidden;
-  padding: 24px 20px 22px;
-  border-radius: 24px;
+  margin: 0 0 18px;
+  padding: 22px 20px 21px;
+  border-radius: 22px;
   background:
     radial-gradient(130% 120% at 15% 0%, #2c3157 0%, #181c33 48%, #0d1020 100%);
   color: #eef1fb;
   box-shadow: 0 18px 40px rgba(28, 30, 60, 0.25);
+}
+
+.hub-page-minimal .hub-head {
+  margin: 0 0 16px;
+}
+
+.hub-page-minimal .hub-greeting {
+  margin-top: 8px;
+  font-size: 21px;
 }
 
 .inner-orbit {
@@ -2846,19 +2959,23 @@ select {
 
 .inner-message h2 {
   position: relative;
-  margin-top: 12px;
+  margin-top: 11px;
   font-size: 20px;
-  line-height: 1.5;
-  letter-spacing: -0.025em;
+  line-height: 1.45;
+  letter-spacing: -0.03em;
   font-weight: 700;
+  word-break: keep-all;
+  text-wrap: balance;
 }
 
 .inner-sub {
   position: relative;
-  margin-top: 12px;
+  margin-top: 9px;
   font-size: 11.5px;
-  line-height: 1.7;
+  line-height: 1.6;
+  letter-spacing: 0.005em;
   color: rgba(214, 222, 245, 0.62);
+  word-break: keep-all;
 }
 
 .session-grid {
@@ -5100,7 +5217,7 @@ select {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .lang-switch {

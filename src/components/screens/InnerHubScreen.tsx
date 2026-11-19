@@ -106,8 +106,17 @@ export function InnerHubScreen() {
   }
 
   return (
-    <main className="page hub-page">
+    <main className="page hub-page hub-page-minimal">
       <LifeDirectionBanner />
+
+      {/* 내면 허브의 첫인상 — VISION 바로 아래에 붙어 있는 내면 선언 */}
+      <section className="inner-message" aria-label={t("hub.kicker")}>
+        <span className="inner-orbit" aria-hidden="true" />
+        <p className="inner-kicker">{t("hub.kicker")}</p>
+        <h2>{t("hub.message1")}</h2>
+        <p className="inner-sub">{t("hub.message2")}</p>
+      </section>
+
       <header className="hub-head">
         <div className="hub-topline">
           <p className="date">{dateLabel || "\u00a0"}</p>
@@ -134,17 +143,6 @@ export function InnerHubScreen() {
           </p>
         ) : null}
       </header>
-
-      <section className="inner-message" aria-label={t("hub.kicker")}>
-        <span className="inner-orbit" aria-hidden="true" />
-        <p className="inner-kicker">{t("hub.kicker")}</p>
-        <h2>
-          {t("hub.message1")}
-          <br />
-          {t("hub.message2")}
-        </h2>
-        <p className="inner-sub">{t("hub.messageSub")}</p>
-      </section>
 
       <nav className="session-grid" aria-label={t("hub.sessions")}>
         <Link href="/visualization" className="session-card s-vis">
