@@ -4991,13 +4991,13 @@ select {
   height: 33px;
   padding: 0 15px;
   border-radius: 999px;
-  border: 1px solid rgba(63, 90, 75, 0.42);
-  background: rgba(78, 107, 91, 0.14);
-  color: #3d5647;
+  border: 1px solid rgba(58, 84, 70, 0.9);
+  background: linear-gradient(180deg, #5a7967 0%, #4a6656 100%);
+  color: #f6faf7;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: -0.01em;
-  box-shadow: 0 2px 7px rgba(63, 90, 75, 0.14);
+  box-shadow: 0 4px 10px -4px rgba(48, 70, 57, 0.5);
 }
 
 .entry .entry-edit span {
@@ -5005,7 +5005,8 @@ select {
 }
 
 .entry .entry-edit:active {
-  background: rgba(78, 107, 91, 0.16);
+  background: linear-gradient(180deg, #4d6a59 0%, #3f5949 100%);
+  transform: translateY(1px);
 }
 
 .entry .entry-open {
