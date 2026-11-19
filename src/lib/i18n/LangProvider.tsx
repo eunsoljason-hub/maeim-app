@@ -122,3 +122,12 @@ export function formatDateShort(key: string, lang: Lang): string {
   }
   return `${date.getMonth() + 1}/${date.getDate()} (${WEEKDAYS.ko[date.getDay()]})`;
 }
+
+/** 요일 한 글자 (주간 스트립용). */
+export function weekdayNarrow(key: string, lang: Lang): string {
+  const [y, m, d] = key.split("-").map(Number);
+  const date = new Date(y, (m ?? 1) - 1, d ?? 1);
+  if (lang === "en") return ["S", "M", "T", "W", "T", "F", "S"][date.getDay()];
+  if (lang === "ja") return WEEKDAYS.ja[date.getDay()];
+  return WEEKDAYS.ko[date.getDay()];
+}

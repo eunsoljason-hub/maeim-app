@@ -10,7 +10,7 @@ import { MonthAgoCard } from "@/components/diary/MonthAgoCard";
 import { MOODS, moodById } from "@/lib/constants";
 import { dateKey } from "@/lib/date";
 import { ENERGY_LABELS, loadTodayCheckIn } from "@/lib/checkin";
-import { useI18n, formatDateKey, formatDateShort } from "@/lib/i18n/LangProvider";
+import { useI18n, formatDateKey, formatDateShort, weekdayNarrow } from "@/lib/i18n/LangProvider";
 import { moodLabel } from "@/lib/i18n/labels";
 import { weekMoodStrip } from "@/lib/briefing";
 import {
@@ -608,7 +608,7 @@ export function DiaryScreen() {
                   key={day.key}
                   className={`day ${item ? "has" : ""} ${day.isToday ? "today" : ""}`}
                 >
-                  <div className="d">{weekdayShort(day.key, lang)}</div>
+                  <div className="d">{weekdayNarrow(day.key, lang)}</div>
                   <div className="m" aria-hidden="true">
                     {item ? item.emoji : "·"}
                   </div>
@@ -718,14 +718,6 @@ export function DiaryScreen() {
   );
 }
 
-function weekdayShort(key: string, lang: "ko" | "en" | "ja") {
-  const [y, m, d] = key.split("-").map(Number);
-  const date = new Date(y, (m ?? 1) - 1, d ?? 1);
-  const ko = ["일", "월", "화", "수", "목", "금", "토"];
-  const en = ["S", "M", "T", "W", "T", "F", "S"];
-  const ja = ["日", "月", "火", "水", "木", "金", "土"];
-  return lang === "en" ? en[date.getDay()] : lang === "ja" ? ja[date.getDay()] : ko[date.getDay()];
-}
 
 /* ------------------------------ 미리보기 부품 ------------------------------ */
 

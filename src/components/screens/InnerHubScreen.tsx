@@ -19,7 +19,8 @@ import {
 import { streakDays, weekMoodStrip, weekStats } from "@/lib/briefing";
 import { dateKey, hourBucket } from "@/lib/date";
 import { useI18n } from "@/lib/i18n/LangProvider";
-import { formatDateKey } from "@/lib/i18n/LangProvider";
+import { formatDateKey, weekdayNarrow } from "@/lib/i18n/LangProvider";
+import { courseText } from "@/lib/i18n/courses";
 import { moodLabel } from "@/lib/i18n/labels";
 
 type Phase = "loading" | "checkin" | "warp" | "hub";
@@ -52,6 +53,7 @@ export function InnerHubScreen() {
 
   const hour = now?.getHours() ?? 20;
   const recommendation = recommendForHour(hour);
+  const recText = courseText(recommendation.course, lang);
   const greeting = t(`hub.greeting.${hourBucket(hour)}`);
   const dateLabel = now ? formatDateKey(dateKey(now), lang) : "";
 
@@ -191,7 +193,7 @@ export function InnerHubScreen() {
             {recommendation.course.glyph}
           </span>
           <span className="txt">
-            <b>{recommendation.course.title}</b>
+            <b>{recText.title}</b>
             <span>
               {t("player.breathing", {
                 inhale: recommendation.course.breath.inhale,
@@ -244,7 +246,7 @@ export function InnerHubScreen() {
               key={item.key}
               className={`day ${item.mood ? "has" : ""} ${item.isToday ? "today" : ""}`}
             >
-              <div className="d">{item.weekday}</div>
+              <div className="d">{weekdayNarrow(item.key, lang)}</div>
               <div className="m" aria-hidden="true">
                 {item.mood ? moodEmoji(item.mood) : "·"}
               </div>
@@ -256,7 +258,7 @@ export function InnerHubScreen() {
 
       <div className="section-head">
         <h2>{t("hub.counsel")}</h2>
-        <span className="tiny">{HOST.displayName}</span>
+        <span className="tiny">{lang === "ko" ? HOST.displayName : "Eunsol"}</span>
       </div>
       <div className="card consult-teaser">
         <div className="host-avatar" aria-hidden="true">
@@ -266,7 +268,7 @@ export function InnerHubScreen() {
           <b>{t("hub.counsel")}</b>
           <p>{t("hub.counselDesc")}</p>
         </div>
-        <CounselButton className="go">›</CounselButton>
+        <CounselButton className="go">{t("hub.enter")} ›</CounselButton>
       </div>
 
       <div className="hub-links">
