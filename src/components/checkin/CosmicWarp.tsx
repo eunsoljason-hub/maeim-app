@@ -154,7 +154,7 @@ export function CosmicWarp({
       /* 남은 잔상을 지워 궤적(모션 블러)을 남긴다 */
       ctx.globalCompositeOperation = "destination-out";
       ctx.globalAlpha = 1;
-      ctx.fillStyle = `rgba(0,0,0,${reduce ? 1 : 1 - Math.pow(0.84, dt / 16.67)})`;
+      ctx.fillStyle = `rgba(0,0,0,${reduce ? 1 : 1 - Math.pow(0.8, dt / 16.67)})`;
       ctx.fillRect(0, 0, width, height);
 
       ctx.globalCompositeOperation = "lighter";
@@ -206,7 +206,7 @@ export function CosmicWarp({
         trail.set(i, { x, y });
 
         const alpha =
-          Math.min(0.5, 0.05 + Math.pow(star.rad, 0.8) * 0.32) * (0.45 + star.depth * 0.55);
+          Math.min(0.85, 0.12 + Math.pow(star.rad, 0.8) * 0.75) * (0.45 + star.depth * 0.55);
         ctx.globalAlpha = alpha;
         ctx.strokeStyle = `rgba(${TINTS[star.tint]},1)`;
         ctx.lineWidth = 1.1 + star.rad * 3 * star.w;
