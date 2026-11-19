@@ -167,7 +167,7 @@ export function CosmicWarp({
         const y = cy + Math.sin(wisp.ang) * rad * maxR * 0.94;
         const scale = wisp.size * (0.5 + rad * 1.5);
         const fade = Math.sin(Math.min(1, rad / 1.25) * Math.PI);
-        ctx.globalAlpha = Math.max(0, fade * 0.2);
+        ctx.globalAlpha = Math.max(0, fade * 0.14);
         ctx.drawImage(sprites[wisp.sprite], x - scale / 2, y - scale / 2, scale, scale);
       }
 
@@ -224,8 +224,8 @@ export function CosmicWarp({
 
       /* 코어 — 빨려 들어갈수록 하얗게 타오르는 중심 */
       const flare = Math.pow(progress, 2.2);
-      const coreSize = maxR * (0.5 + flare * 1.7);
-      ctx.globalAlpha = 0.16 + flare * 0.55;
+      const coreSize = maxR * (0.22 + flare * 0.85);
+      ctx.globalAlpha = 0.1 + flare * 0.32;
       ctx.drawImage(core, cx - coreSize / 2, cy - coreSize / 2, coreSize, coreSize);
 
       /* 마지막 한순간 — 빛 속으로 사라진다 */
