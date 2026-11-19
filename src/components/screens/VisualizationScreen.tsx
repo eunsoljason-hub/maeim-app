@@ -39,7 +39,7 @@ export function VisualizationScreen() {
               <div className="vis-group-title">
                 <h2>
                   {group.glyph} {t(`vis.group.${group.id}`)}
-                  <span className="vis-en">{group.labelEn}</span>
+                  {lang !== "ja" ? <span className="vis-en">{group.labelEn}</span> : null}
                 </h2>
                 <p>
                   {t(`vis.group.${group.id}.kicker`)} · {t(`vis.group.${group.id}.desc`)}
