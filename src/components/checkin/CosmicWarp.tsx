@@ -154,7 +154,7 @@ export function CosmicWarp({
       /* 남은 잔상을 지워 궤적(모션 블러)을 남긴다 */
       ctx.globalCompositeOperation = "destination-out";
       ctx.globalAlpha = 1;
-      ctx.fillStyle = `rgba(0,0,0,${reduce ? 1 : 1 - Math.pow(0.66, dt / 16.67)})`;
+      ctx.fillStyle = `rgba(0,0,0,${reduce ? 1 : 1 - Math.pow(0.8, dt / 16.67)})`;
       ctx.fillRect(0, 0, width, height);
 
       ctx.globalCompositeOperation = "lighter";
@@ -167,7 +167,7 @@ export function CosmicWarp({
         const y = cy + Math.sin(wisp.ang) * rad * maxR * 0.94;
         const scale = wisp.size * (0.5 + rad * 1.5);
         const fade = Math.sin(Math.min(1, rad / 1.25) * Math.PI);
-        ctx.globalAlpha = Math.max(0, fade * 0.1);
+        ctx.globalAlpha = Math.max(0, fade * 0.13);
         ctx.drawImage(sprites[wisp.sprite], x - scale / 2, y - scale / 2, scale, scale);
       }
 
@@ -206,10 +206,10 @@ export function CosmicWarp({
         trail.set(i, { x, y });
 
         const alpha =
-          Math.min(1, 0.05 + Math.pow(star.rad, 0.85) * 1.15) * (0.4 + star.depth * 0.6);
+          Math.min(1, 0.22 + Math.pow(star.rad, 0.72) * 1.5) * (0.45 + star.depth * 0.55);
         ctx.globalAlpha = alpha;
         ctx.strokeStyle = `rgba(${TINTS[star.tint]},1)`;
-        ctx.lineWidth = 0.9 + star.rad * 2.6 * star.w;
+        ctx.lineWidth = 1.1 + star.rad * 3 * star.w;
         if (prev && Math.hypot(x - prev.x, y - prev.y) < 90) {
           ctx.beginPath();
           ctx.moveTo(prev.x, prev.y);
@@ -219,7 +219,7 @@ export function CosmicWarp({
         /* 별의 머리 — 점 하나가 빛나며 지나간다 */
         if (star.rad > 0.16) {
           ctx.beginPath();
-          ctx.arc(x, y, 0.5 + star.rad * 1.5 * star.w, 0, Math.PI * 2);
+          ctx.arc(x, y, 0.6 + star.rad * 1.9 * star.w, 0, Math.PI * 2);
           ctx.fillStyle = `rgba(${TINTS[star.tint]},1)`;
           ctx.fill();
         }
