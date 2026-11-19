@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { CheckInScreen } from "@/components/checkin/CheckInScreen";
 import { CosmicWarp } from "@/components/checkin/CosmicWarp";
+import { InnerOrb } from "@/components/home/InnerOrb";
 import { LangSwitch } from "@/components/i18n/LangSwitch";
 import { LifeDirectionBanner } from "@/components/practice/LifeDirectionBanner";
 import { PracticeStatsCard } from "@/components/practice/PracticeStatsCard";
@@ -86,11 +87,7 @@ export function InnerHubScreen() {
         <div className="orb-halo" aria-hidden="true">
           <span className="orb-ring" />
           <div className="inner-orb">
-            <span className="orb-neb orb-neb-a" />
-            <span className="orb-neb orb-neb-b" />
-            <span className="orb-stars" />
-            <span className="orb-stars-far" />
-            <span className="orb-core" />
+            <InnerOrb />
           </div>
         </div>
         <p className="orb-kicker">{t("hub.kicker")}</p>
