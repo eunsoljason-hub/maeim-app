@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import type { HexState } from "@/lib/growth";
+import { HEX_DEFAULT, type HexState } from "@/lib/growth";
+import { useI18n } from "@/lib/i18n/LangProvider";
 
 const SIZE = 240;
 const CENTER = SIZE / 2;
@@ -30,6 +31,8 @@ export function LifeHexagon({
   value: HexState;
   onChange: (next: HexState) => void;
 }) {
+  const { t } = useI18n();
+
   const dataPolygon = useMemo(
     () =>
       value.scores
@@ -40,6 +43,11 @@ export function LifeHexagon({
         .join(" "),
     [value.scores],
   );
+
+  const shownLabel = (index: number) =>
+    value.labels[index] === HEX_DEFAULT.labels[index]
+      ? t(`hex.${index + 1}`)
+      : value.labels[index];
 
   const average =
     value.scores.reduce((sum, score) => sum + score, 0) / Math.max(1, value.scores.length);
@@ -57,17 +65,17 @@ export function LifeHexagon({
   };
 
   return (
-    <section className="growth-panel" aria-label="인생 육각형">
+    <section className="growth-panel" aria-label={t("hex.title")}>
       <header className="growth-panel-head">
         <div>
-          <p className="eyebrow">Life balance</p>
-          <h2>인생 육각형</h2>
+          <p className="eyebrow">{t("hex.eyebrow")}</p>
+          <h2>{t("hex.title")}</h2>
         </div>
-        <span className="tiny">평균 {average.toFixed(1)} / 10</span>
+        <span className="tiny">{t("hex.average", { n: average.toFixed(1) })}</span>
       </header>
 
       <div className="hex-wrap">
-        <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="hex-chart" role="img" aria-label="인생 균형 육각형 차트">
+        <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="hex-chart" role="img" aria-label={t("hex.title")}>
           {[0.2, 0.4, 0.6, 0.8, 1].map((ratio) => (
             <polygon
               key={ratio}
@@ -116,7 +124,7 @@ export function LifeHexagon({
                 fill="#6e6c78"
                 fontWeight={600}
               >
-                {label || `항목 ${i + 1}`}
+                {shownLabel(i) || t("hex.item", { n: i + 1 })}
               </text>
             );
           })}
@@ -124,19 +132,22 @@ export function LifeHexagon({
       </div>
 
       <p className="hex-hint">
-        가장 낮은 곳은 <b>{value.labels[lowestIndex]}</b> {value.scores[lowestIndex]}점, 가장 높은 곳은{" "}
-        <b>{value.labels[highestIndex]}</b> {value.scores[highestIndex]}점이에요. 모양이 한쪽으로
-        치우쳐도 괜찮아요. 지금의 균형을 보는 것부터 시작해요.
+        {t("hex.hint", {
+          low: shownLabel(lowestIndex),
+          lowScore: value.scores[lowestIndex],
+          high: shownLabel(highestIndex),
+          highScore: value.scores[highestIndex],
+        })}
       </p>
 
       <div className="hex-list">
         {value.labels.map((label, index) => (
           <div key={index} className="hex-row">
             <input
-              value={label}
+              value={shownLabel(index)}
               onChange={(event) => setLabel(index, event.target.value)}
               maxLength={12}
-              aria-label={`${index + 1}번째 항목 이름`}
+              aria-label={t("hex.item", { n: index + 1 })}
               className="hex-name"
             />
             <input
@@ -146,7 +157,7 @@ export function LifeHexagon({
               step={1}
               value={value.scores[index]}
               onChange={(event) => setScore(index, Number(event.target.value))}
-              aria-label={`${label || `항목 ${index + 1}`} 점수`}
+              aria-label={`${shownLabel(index)} ${value.scores[index]}`}
               className="hex-range"
             />
             <span className="hex-score">{value.scores[index]}</span>
@@ -159,12 +170,12 @@ export function LifeHexagon({
         className="growth-reset"
         onClick={() =>
           onChange({
-            labels: ["건강", "마음", "가족", "커리어", "재정", "성장"],
-            scores: [6, 6, 7, 4, 4, 6],
+            labels: [...HEX_DEFAULT.labels],
+            scores: [...HEX_DEFAULT.scores],
           })
         }
       >
-        예시 값으로 되돌리기
+        {t("hex.reset")}
       </button>
     </section>
   );

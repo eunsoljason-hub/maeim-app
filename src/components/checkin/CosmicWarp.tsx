@@ -10,9 +10,15 @@ import { useEffect, useRef, useState } from "react";
 export function CosmicWarp({
   message,
   onDone,
+  kicker = "INYOU · 내면으로",
+  sub = "잠시만, 숨을 고르고 들어갑니다.",
+  skipLabel = "건너뛰기",
 }: {
   message: string;
   onDone: () => void;
+  kicker?: string;
+  sub?: string;
+  skipLabel?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const doneRef = useRef(false);
@@ -140,9 +146,9 @@ export function CosmicWarp({
       <canvas ref={canvasRef} className="cosmic-canvas" aria-hidden="true" />
       <div className="cosmic-veil" aria-hidden="true" />
       <div className="cosmic-copy">
-        <p className="cosmic-kicker">INYOU · 내면으로</p>
+        <p className="cosmic-kicker">{kicker}</p>
         <p className="cosmic-message">{message}</p>
-        <p className="cosmic-sub">잠시만, 숨을 고르고 들어갑니다.</p>
+        <p className="cosmic-sub">{sub}</p>
         <button
           type="button"
           className="cosmic-skip"
@@ -152,7 +158,7 @@ export function CosmicWarp({
             onDone();
           }}
         >
-          건너뛰기
+          {skipLabel}
         </button>
       </div>
     </div>

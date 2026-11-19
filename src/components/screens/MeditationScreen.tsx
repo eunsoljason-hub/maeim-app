@@ -1,37 +1,49 @@
 "use client";
 
 import Link from "next/link";
-import { MEDITATION_BUCKETS, THEMES, meditationCoursesFor } from "@/lib/constants";
 import { LifeDirectionBanner } from "@/components/practice/LifeDirectionBanner";
+import { LangSwitch } from "@/components/i18n/LangSwitch";
+import { MEDITATION_BUCKETS, meditationCoursesFor } from "@/lib/constants";
+import { courseText } from "@/lib/i18n/courses";
+import { useI18n } from "@/lib/i18n/LangProvider";
 
 export function MeditationScreen() {
+  const { t, lang } = useI18n();
+
   return (
     <main className="page">
       <LifeDirectionBanner />
       <header className="view-head">
         <div>
-          <p className="eyebrow">호흡으로 돌아오는 시간</p>
-          <h1>명상</h1>
+          <p className="eyebrow">{t("med.eyebrow")}</p>
+          <h1>{t("med.title")}</h1>
         </div>
-        <span className="tag">5가지</span>
+        <div className="view-head-right">
+          <LangSwitch />
+          <span className="tag">{t("med.tag")}</span>
+        </div>
       </header>
-      <p className="view-lead">
-        시간이 정해져 있으면 고르기 쉽고, 정하기 어려운 날에는 타이머로 시작해요.
-      </p>
+      <p className="view-lead">{t("med.lead")}</p>
 
       {MEDITATION_BUCKETS.map((bucket) => {
         const courses = meditationCoursesFor(bucket.minutes);
         const isTimer = bucket.minutes === null;
         return (
-          <section key={bucket.id} className="med-block" aria-label={`${bucket.label} 명상`}>
+          <section
+            key={bucket.id}
+            className="med-block"
+            aria-label={`${bucket.label} ${t("med.title")}`}
+          >
             <div className="med-head">
               <span className="med-num">
                 {bucket.minutes === null ? "∞" : bucket.minutes}
-                {bucket.minutes === null ? "" : <i>분</i>}
+                {bucket.minutes === null ? "" : <i>{t("common.min")}</i>}
               </span>
               <span className="med-head-txt">
-                <b>{bucket.label}</b>
-                <span>{bucket.hint}</span>
+                <b>
+                  {bucket.minutes === null ? t("med.bucket.timer") : `${bucket.minutes} ${t("common.min")}`}
+                </b>
+                <span>{t(`med.bucket.${bucket.id}`)}</span>
               </span>
               <span className="med-glyph" aria-hidden="true">
                 {bucket.glyph}
@@ -41,31 +53,34 @@ export function MeditationScreen() {
             {isTimer ? (
               <Link href="/meditation/timer" className="timer-card">
                 <div className="timer-card-top">
-                  <span className="timer-chip">자유 명상</span>
-                  <span className="tiny">00:00부터 시작</span>
+                  <span className="timer-chip">{t("med.timer.chip")}</span>
+                  <span className="tiny">{t("med.timer.from")}</span>
                 </div>
-                <b>원하는 만큼 앉아 있어요</b>
-                <p>시작과 끝을 내가 정하고, 끝나면 실제 시간(분:초)이 기록에 남아요.</p>
-                <span className="timer-card-go">타이머 열기 ›</span>
+                <b>{t("med.timer.title")}</b>
+                <p>{t("med.timer.desc")}</p>
+                <span className="timer-card-go">{t("med.timer.open")} ›</span>
               </Link>
             ) : (
               <div className="course-grid">
-                {courses.map((course) => (
-                  <Link
-                    key={course.id}
-                    href={`/player/${course.id}`}
-                    className={`course c-${course.tone}`}
-                  >
-                    <span className="glyph" aria-hidden="true">
-                      {course.glyph}
-                    </span>
-                    <h4>{course.title}</h4>
-                    <p>{course.subtitle}</p>
-                    <span className="meta">
-                      <b>{course.minutes}분</b> · {THEMES[course.theme].label}
-                    </span>
-                  </Link>
-                ))}
+                {courses.map((course) => {
+                  const text = courseText(course, lang);
+                  return (
+                    <Link
+                      key={course.id}
+                      href={`/player/${course.id}`}
+                      className={`course c-${course.tone}`}
+                    >
+                      <span className="glyph" aria-hidden="true">
+                        {course.glyph}
+                      </span>
+                      <h4>{text.title}</h4>
+                      <p>{text.subtitle}</p>
+                      <span className="meta">
+                        <b>{t("common.minutes", { n: course.minutes })}</b> · {t(`theme.${course.theme}`)}
+                      </span>
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </section>
@@ -73,12 +88,8 @@ export function MeditationScreen() {
       })}
 
       <div className="tip-card">
-        <b>어떤 코스를 고를까요?</b>
-        <p>
-          3분은 지금 이 순간으로 돌아오기, 10분은 하루 정리, 20분은 바디스캔, 30분은
-          길게 앉는 날에 어울려요. 자유 타이머는 끝나는 시간을 내가 정하고 싶을 때
-          써요.
-        </p>
+        <b>{t("med.tipTitle")}</b>
+        <p>{t("med.tip")}</p>
       </div>
     </main>
   );

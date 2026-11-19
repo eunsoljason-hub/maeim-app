@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AppProvider } from "@/components/providers/AppProvider";
 import { AppShell } from "@/components/layout/AppShell";
+import { LangProvider } from "@/lib/i18n/LangProvider";
 import { APP_DESCRIPTION, APP_NAME, APP_NAME_EN, APP_TAGLINE } from "@/lib/constants";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
@@ -57,9 +58,11 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-        <AppProvider>
-          <AppShell>{children}</AppShell>
-        </AppProvider>
+        <LangProvider>
+          <AppProvider>
+            <AppShell>{children}</AppShell>
+          </AppProvider>
+        </LangProvider>
       </body>
     </html>
   );

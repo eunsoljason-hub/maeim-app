@@ -1,6 +1,7 @@
 "use client";
 
 import { NEED_STAGES, type NeedsState } from "@/lib/growth";
+import { useI18n } from "@/lib/i18n/LangProvider";
 
 export function NeedsPyramid({
   value,
@@ -9,17 +10,18 @@ export function NeedsPyramid({
   value: NeedsState;
   onChange: (next: NeedsState) => void;
 }) {
+  const { t } = useI18n();
   const stage = NEED_STAGES.find((item) => item.level === value.level) ?? null;
   const ordered = [...NEED_STAGES].reverse();
 
   return (
-    <section className="growth-panel" aria-label="매슬로우 욕구 피라미드">
+    <section className="growth-panel" aria-label={t("needs.title")}>
       <header className="growth-panel-head">
         <div>
-          <p className="eyebrow">Maslow · 5 stages</p>
-          <h2>욕구 피라미드</h2>
+          <p className="eyebrow">{t("needs.eyebrow")}</p>
+          <h2>{t("needs.title")}</h2>
         </div>
-        <span className="tiny">지금 머무는 단계를 눌러보세요</span>
+        <span className="tiny">{t("needs.hint")}</span>
       </header>
 
       <div className="pyramid">
@@ -49,8 +51,8 @@ export function NeedsPyramid({
             >
               <span className="pyramid-num">{item.level}</span>
               <span className="pyramid-label">
-                {item.label}
-                <em>{item.hint}</em>
+                {t(`needs.${item.level}`)}
+                <em>{t(`needs.${item.level}.hint`)}</em>
               </span>
               {selected ? <span className="pyramid-check">✓</span> : null}
             </button>
@@ -58,12 +60,10 @@ export function NeedsPyramid({
         })}
       </div>
 
-      <p className="pyramid-caption">
-        아래에서 위로: 생리적 욕구 → 안전 → 소속과 사랑 → 존중 → 자아실현
-      </p>
+      <p className="pyramid-caption">{t("needs.caption")}</p>
 
       <div className="growth-field">
-        <label htmlFor="needs-note">지금 내가 이 단계에 있는 이유</label>
+        <label htmlFor="needs-note">{t("needs.note")}</label>
         <textarea
           id="needs-note"
           rows={3}
@@ -78,20 +78,16 @@ export function NeedsPyramid({
           }
           placeholder={
             stage
-              ? `예: 요즘은 ${stage.hint}이 가장 먼저 신경 쓰인다.`
-              : "요즘 가장 먼저 채워야 한다고 느끼는 것을 적어보세요."
+              ? t("needs.notePhStage", { hint: t(`needs.${stage.level}.hint`) })
+              : t("needs.notePh")
           }
         />
       </div>
 
       <p className="growth-saved">
-        {stage ? (
-          <>
-            지금의 단계 · <b>{stage.level}. {stage.label}</b>
-          </>
-        ) : (
-          "아직 단계를 고르지 않았어요."
-        )}
+        {stage
+          ? t("needs.current", { level: stage.level, label: t(`needs.${stage.level}`) })
+          : t("needs.none")}
       </p>
     </section>
   );

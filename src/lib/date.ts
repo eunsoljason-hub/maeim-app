@@ -118,3 +118,12 @@ export function subGreetingForHour(hour: number) {
 export function hoursUntil(target: Date, now: Date = new Date()) {
   return (target.getTime() - now.getTime()) / 3_600_000;
 }
+
+/** 시간대 구분 — 다국어 인사말 키로 쓴다. */
+export function hourBucket(hour: number): "dawn" | "morning" | "afternoon" | "evening" | "night" {
+  if (hour < 5) return "dawn";
+  if (hour < 11) return "morning";
+  if (hour < 17) return "afternoon";
+  if (hour < 22) return "evening";
+  return "night";
+}

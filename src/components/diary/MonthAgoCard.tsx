@@ -1,29 +1,43 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { MOODS, moodById } from "@/lib/constants";
-import { dateKey, fmtDateLong, pad2 } from "@/lib/date";
+import { useI18n, formatDateKey } from "@/lib/i18n/LangProvider";
+import { moodLabel } from "@/lib/i18n/labels";
+import type { MoodId } from "@/lib/types";
 import type { DiaryEntry } from "@/lib/types";
+import { dateKey } from "@/lib/date";
 
 const GROWTH_KEY = "maeum.growthNotes.v1";
 
-/** 정확히 한 달 전 날짜 (31일 → 다음 달 말일로 보정). */
+/** 정확히 한 달 전 날짜 (31일 → 그 달 마지막 날로 보정). */
 export function monthAgoKey(base: Date = new Date()): string {
   const day = base.getDate();
   const target = new Date(base.getFullYear(), base.getMonth() - 1, day);
   if (target.getMonth() !== ((base.getMonth() - 1 + 12) % 12)) {
-    /* 3월 31일 → 2월 31일은 3월로 넘어가므로 그 달의 마지막 날로 맞춘다. */
     target.setDate(0);
   }
   return dateKey(target);
 }
 
 const SAMPLE = {
-  mood: "anxious" as const,
-  intensity: 4,
-  energy: 2,
-  text:
-    "복직까지 100일도 안 남았는데 그동안 아무것도 못 한 것 같아 조급하다. 애들 재우고 나면 기운이 없어서 아무것도 시작하지 못하고, 내일도 똑같을 것 같다. 남들은 다 잘 살아가는 것 같은데 나만 제자리인 기분.",
+  ko: {
+    mood: "anxious" as MoodId,
+    intensity: 4,
+    energy: 2,
+    text: "복직까지 100일도 안 남았는데 그동안 아무것도 못 한 것 같아 조급하다. 애들 재우고 나면 기운이 없어서 아무것도 시작하지 못하고, 내일도 똑같을 것 같다. 남들은 다 잘 살아가는 것 같은데 나만 제자리인 기분.",
+  },
+  en: {
+    mood: "anxious" as MoodId,
+    intensity: 4,
+    energy: 2,
+    text: "Less than 100 days until I go back to work, and I feel like I've done nothing. Once the kids are asleep I have no energy left to start anything, and I'm sure tomorrow will be the same. Everyone else seems to be getting somewhere while I stand still.",
+  },
+  ja: {
+    mood: "anxious" as MoodId,
+    intensity: 4,
+    energy: 2,
+    text: "復職まで100日もないのに、何もできていない気がして焦っていた。子どもたちを寝かしつけると力が出ず、何も始められない。明日も同じだろうと思っていた。みんなはうまくやっているのに、私だけ立ち止まっている気がした。",
+  },
 };
 
 function loadGrowthNotes(): Record<string, string> {
@@ -51,6 +65,7 @@ export function MonthAgoCard({
   todayMood: string | null;
   todayEnergy: number | null;
 }) {
+  const { t, lang } = useI18n();
   const key = useMemo(() => monthAgoKey(), []);
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [draft, setDraft] = useState("");
@@ -70,11 +85,15 @@ export function MonthAgoCard({
     [diaries, key],
   );
 
+  const sample = SAMPLE[lang] ?? SAMPLE.ko;
   const past = real
-    ? { mood: real.mood, intensity: real.intensity, energy: real.energy ?? null, text: real.text }
-    : SAMPLE;
-  const pastMood = moodById(past.mood);
-  const nowMood = todayMood ? moodById(todayMood) : null;
+    ? {
+        mood: real.mood,
+        intensity: real.intensity,
+        energy: real.energy ?? null,
+        text: real.text,
+      }
+    : sample;
 
   const save = () => {
     const value = draft.trim();
@@ -92,29 +111,27 @@ export function MonthAgoCard({
   };
 
   return (
-    <section className="month-card" aria-label="한 달 전 오늘의 나">
+    <section className="month-card" aria-label={t("month.kicker")}>
       <div className="month-head">
         <div>
-          <p className="month-kicker">한 달 전 오늘의 나</p>
-          <b>{fmtDateLong(key)}</b>
+          <p className="month-kicker">{t("month.kicker")}</p>
+          <b>{formatDateKey(key, lang)}</b>
         </div>
         <span className={`month-tag ${real ? "" : "sample"}`}>
-          {real ? "내 기록" : "예시 기록"}
+          {real ? t("month.mine") : t("month.sample")}
         </span>
       </div>
 
       <div className="month-body">
         <div className="month-past">
-          <span className="month-label">그때의 나</span>
+          <span className="month-label">{t("month.past")}</span>
           <div className="month-mood">
-            <span aria-hidden="true">{pastMood.emoji}</span>
-            {pastMood.label}
-            <em>마음 {past.intensity}/5</em>
-            {past.energy ? <em>에너지 {past.energy}/5</em> : null}
+            <span aria-hidden="true">{moodEmoji(past.mood)}</span>
+            {moodLabel(past.mood as MoodId, t)}
+            <em>{t("month.intensity", { n: past.intensity })}</em>
+            {past.energy ? <em>{t("month.energy", { n: past.energy })}</em> : null}
           </div>
-          <p className="month-text">
-            {past.text || "그날은 글로 남기지 않았어요. 그래도 그때의 마음은 여기 있었어요."}
-          </p>
+          <p className="month-text">{past.text || t("month.noRecord")}</p>
         </div>
 
         <div className="month-arrow" aria-hidden="true">
@@ -122,54 +139,61 @@ export function MonthAgoCard({
         </div>
 
         <div className="month-now">
-          <span className="month-label">지금의 나</span>
+          <span className="month-label">{t("month.now")}</span>
           <div className="month-mood">
-            {nowMood ? (
+            {todayMood ? (
               <>
-                <span aria-hidden="true">{nowMood.emoji}</span>
-                {nowMood.label}
+                <span aria-hidden="true">{moodEmoji(todayMood as MoodId)}</span>
+                {moodLabel(todayMood as MoodId, t)}
               </>
             ) : (
-              <span>오늘의 체크인을 하면 함께 보여요</span>
+              <span>{t("month.noCheckin")}</span>
             )}
-            {todayEnergy ? <em>에너지 {todayEnergy}/5</em> : null}
+            {todayEnergy ? <em>{t("month.energy", { n: todayEnergy })}</em> : null}
           </div>
         </div>
       </div>
 
-      <p className="month-message">
-        한 달 전의 고민이 <b>지금은 얼마나 작아 보이나요?</b> 그때보다 이만큼 성장했어요.
-      </p>
+      <p className="month-message">{t("month.message")}</p>
 
       <div className="month-note">
-        <label htmlFor="growth-note">지금의 나에게 한마디</label>
+        <label htmlFor="growth-note">{t("month.note")}</label>
         <textarea
           id="growth-note"
           value={draft}
           onChange={(event) => setDraft(event.target.value.slice(0, 300))}
           rows={2}
           maxLength={300}
-          placeholder="예: 그때는 하루하루가 벅찼는데, 지금은 아이들과 웃을 여유가 생겼다."
+          placeholder={t("month.notePh")}
         />
         <div className="month-note-foot">
           <span className="tiny">{draft.length} / 300</span>
           <button type="button" onClick={save}>
-            {saved ? "남겼어요 ✓" : "성장 코멘트 남기기"}
+            {saved ? t("month.saved") : t("month.save")}
           </button>
         </div>
         {notes[key] && !saved ? (
-          <p className="month-saved">남긴 코멘트 · {notes[key]}</p>
+          <p className="month-saved">
+            {t("month.savedLabel")} · {notes[key]}
+          </p>
         ) : null}
       </div>
 
-      <p className="month-footnote">
-        {real
-          ? `${pad2(1)}달 전 오늘 남긴 기록을 그대로 가져왔어요.`
-          : "아직 한 달 전 기록이 없어서, 그날의 마음을 예시로 보여드려요. 오늘 기록이 쌓이면 진짜 과거의 나와 비교할 수 있어요."}
-      </p>
+      <p className="month-footnote">{real ? t("month.footReal") : t("month.footSample")}</p>
     </section>
   );
 }
 
-/**오늘의 기분 선택지 (다이어리 폼에서 재사용) */
-export const DIARY_MOODS = MOODS;
+function moodEmoji(id: MoodId | string | null | undefined) {
+  const map: Record<string, string> = {
+    calm: "😌",
+    good: "🙂",
+    flat: "😐",
+    heavy: "😔",
+    anxious: "😣",
+    angry: "😤",
+    tired: "🥱",
+    hope: "🌤️",
+  };
+  return map[String(id)] ?? "·";
+}

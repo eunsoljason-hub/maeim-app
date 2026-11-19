@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useApp } from "@/components/providers/AppProvider";
+import { useI18n } from "@/lib/i18n/LangProvider";
 import {
   DEFAULT_LEVEL_THEME,
   LEVEL_THEMES,
@@ -18,6 +19,7 @@ import {
  */
 export function PracticeStatsCard({ compact = false }: { compact?: boolean }) {
   const { plays, hydrated } = useApp();
+  const { t, lang } = useI18n();
   const [themeId, setThemeId] = useState<LevelThemeId>(DEFAULT_LEVEL_THEME);
 
   useEffect(() => {
@@ -42,10 +44,17 @@ export function PracticeStatsCard({ compact = false }: { compact?: boolean }) {
 
   const stats = practiceStats(plays);
   const level = levelForMinutes(stats.totalMinutes, themeId);
-  const theme = LEVEL_THEMES.find((item) => item.id === themeId) ?? LEVEL_THEMES[0];
+
+  const minutesText = (value: number) => {
+    const total = Math.max(0, Math.round(value));
+    if (total < 60) return t("stats.minutes", { n: total });
+    const h = Math.floor(total / 60);
+    const m = total % 60;
+    return m ? t("stats.hoursMin", { h, m }) : t("stats.hours", { h });
+  };
 
   return (
-    <section className={`practice-card ${compact ? "compact" : ""}`} aria-label="수행 시간과 레벨">
+    <section className={`practice-card ${compact ? "compact" : ""}`} aria-label={t("stats.title")}>
       <div className="practice-head">
         <div className="practice-level">
           <span className="practice-badge" aria-hidden="true">
@@ -53,11 +62,13 @@ export function PracticeStatsCard({ compact = false }: { compact?: boolean }) {
           </span>
           <div className="practice-level-txt">
             <span className="practice-lv">LV.{level.level}</span>
-            <b>{level.name}</b>
-            <span className="practice-theme-hint">{theme.hint}</span>
+            <b>{t(`level.${themeId}.${level.level}`)}</b>
+            <span className="practice-theme-hint">{t(`level.${themeId}.hint`)}</span>
           </div>
         </div>
-        <span className="practice-total">{hydrated ? fmtMinutes(stats.totalMinutes) : "–"}</span>
+        <span className="practice-total">
+          {hydrated ? minutesText(stats.totalMinutes) : "–"}
+        </span>
       </div>
 
       <div className="practice-gauge" aria-hidden="true">
@@ -66,46 +77,64 @@ export function PracticeStatsCard({ compact = false }: { compact?: boolean }) {
       <p className="practice-next">
         {hydrated ? (
           level.nextMinutes === null ? (
-            <>최고 레벨이에요. 쌓인 시간이 그대로 당신의 것이 됩니다.</>
+            <>{t("stats.max")}</>
           ) : (
             <>
-              다음 레벨 <b>{theme.names[level.level]}</b>까지{" "}
-              <b>{fmtMinutes(level.remainingMinutes ?? 0)}</b> 남았어요
+              {t("stats.next", {
+                name: t(`level.${themeId}.${level.level + 1}`),
+                time: minutesText(level.remainingMinutes ?? 0),
+              })}
             </>
           )
         ) : (
-          "기록을 불러오는 중이에요"
+          t("stats.loading")
         )}
       </p>
 
       <div className="practice-grid">
         <div>
-          <b>{hydrated ? fmtMinutes(stats.todayMinutes) : "–"}</b>
-          <span>오늘 · {stats.todaySessions}회</span>
+          <b>{hydrated ? minutesText(stats.todayMinutes) : "–"}</b>
+          <span>
+            {t("stats.today")} · {t("stats.sessions", { n: stats.todaySessions })}
+          </span>
         </div>
         <div>
-          <b>{hydrated ? fmtMinutes(stats.weekMinutes) : "–"}</b>
-          <span>이번 주 · {stats.weekSessions}회</span>
+          <b>{hydrated ? minutesText(stats.weekMinutes) : "–"}</b>
+          <span>
+            {t("stats.week")} · {t("stats.sessions", { n: stats.weekSessions })}
+          </span>
         </div>
         <div>
-          <b>{hydrated ? fmtMinutes(stats.totalMinutes) : "–"}</b>
-          <span>총 누적 · {stats.totalSessions}회</span>
+          <b>{hydrated ? minutesText(stats.totalMinutes) : "–"}</b>
+          <span>
+            {t("stats.total")} · {t("stats.sessions", { n: stats.totalSessions })}
+          </span>
         </div>
       </div>
 
-      <div className="practice-themes" role="group" aria-label="레벨 이름 테마">
+      <div className="practice-themes" role="group" aria-label={t("stats.theme")}>
         {LEVEL_THEMES.map((item) => (
           <button
             key={item.id}
             type="button"
+            lang={lang}
             className={item.id === themeId ? "on" : ""}
             onClick={() => choose(item.id)}
             aria-pressed={item.id === themeId}
           >
-            {item.label}
+            {t(`level.theme.${item.id}`)}
           </button>
         ))}
       </div>
     </section>
   );
 }
+
+/** 다른 화면에서 같은 계산이 필요할 때. */
+export function totalMinutesText(minutes: number, t: (key: string, vars?: Record<string, string | number>) => string) {
+  return minutes >= 60
+    ? t("stats.hoursMin", { h: Math.floor(minutes / 60), m: Math.round(minutes % 60) })
+    : t("stats.minutes", { n: Math.round(minutes) });
+}
+
+export { fmtMinutes };

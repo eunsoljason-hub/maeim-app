@@ -5,42 +5,36 @@ import { useEffect, useMemo, useState } from "react";
 import { useApp } from "@/components/providers/AppProvider";
 import { CheckInScreen } from "@/components/checkin/CheckInScreen";
 import { CosmicWarp } from "@/components/checkin/CosmicWarp";
-import {
-  COURSES,
-  HOST,
-  SLOT_TIMES,
-  THEMES,
-  moodById,
-  recommendForHour,
-} from "@/lib/constants";
+import { CounselButton } from "@/components/counsel/CounselButton";
+import { LangSwitch } from "@/components/i18n/LangSwitch";
+import { LifeDirectionBanner } from "@/components/practice/LifeDirectionBanner";
+import { PracticeStatsCard } from "@/components/practice/PracticeStatsCard";
+import { COURSES, HOST, recommendForHour } from "@/lib/constants";
 import {
   loadTodayCheckIn,
   markCosmicSeen,
   saveCheckIn,
   type CheckIn,
 } from "@/lib/checkin";
-import { slotStateFor } from "@/lib/booking";
 import { streakDays, weekMoodStrip, weekStats } from "@/lib/briefing";
-import { dateKey, fmtDateHeading, fmtWon, greetingForHour } from "@/lib/date";
-import { LifeDirectionBanner } from "@/components/practice/LifeDirectionBanner";
-import { PracticeStatsCard } from "@/components/practice/PracticeStatsCard";
-
-const QUOTES = [
-  "“잘하고 있어요. 오늘도 여기까지 왔으니까.”",
-  "“마음이 무거운 날은, 무겁다고 말해도 괜찮아요.”",
-  "“3분의 침묵도 당신 편이에요.”",
-  "“아무것도 하지 않는 시간이 회복을 만들어요.”",
-  "“오늘의 감정은 판단이 아니라 정보예요.”",
-  "“숨을 고르면, 다시 고를 수 있어요.”",
-  "“완벽하지 않은 하루도 기록할 가치가 있어요.”",
-];
-
-const ENTRY_MESSAGE = "지금부터 당신의 내면을 들여다보도록 하겠습니다";
+import { dateKey, hourBucket } from "@/lib/date";
+import { useI18n } from "@/lib/i18n/LangProvider";
+import { formatDateKey } from "@/lib/i18n/LangProvider";
+import { moodLabel } from "@/lib/i18n/labels";
 
 type Phase = "loading" | "checkin" | "warp" | "hub";
 
+const REC_KICKERS: Record<string, string> = {
+  dawn: "rec.sleep",
+  morning: "rec.morning",
+  afternoon: "rec.midday",
+  evening: "rec.evening",
+  night: "rec.night",
+};
+
 export function InnerHubScreen() {
-  const { diaries, plays, slots, bookings, hydrated, mode } = useApp();
+  const { diaries, plays, slots, bookings, hydrated } = useApp();
+  const { t, lang } = useI18n();
   const [now, setNow] = useState<Date | null>(null);
   const [phase, setPhase] = useState<Phase>("loading");
   const [checkIn, setCheckIn] = useState<CheckIn | null>(null);
@@ -58,8 +52,8 @@ export function InnerHubScreen() {
 
   const hour = now?.getHours() ?? 20;
   const recommendation = recommendForHour(hour);
-  const greeting = greetingForHour(hour);
-  const dateLabel = now ? fmtDateHeading(now) : "";
+  const greeting = t(`hub.greeting.${hourBucket(hour)}`);
+  const dateLabel = now ? formatDateKey(dateKey(now), lang) : "";
 
   const stats = useMemo(
     () => (now ? weekStats(diaries, plays, now) : { sessions: 0, minutes: 0, diaryDays: 0 }),
@@ -68,23 +62,7 @@ export function InnerHubScreen() {
   const streak = useMemo(() => (now ? streakDays(diaries, now) : 0), [diaries, now]);
   const week = useMemo(() => (now ? weekMoodStrip(diaries, now) : []), [diaries, now]);
 
-  const nextSlot = useMemo(() => {
-    if (!now) return null;
-    for (const offset of [0, 1]) {
-      const d = new Date(now);
-      d.setDate(d.getDate() + offset);
-      const key = dateKey(d);
-      for (const time of SLOT_TIMES) {
-        if (slotStateFor(key, time, slots, bookings, now) === "open") {
-          return { dateKey: key, time, offset };
-        }
-      }
-    }
-    return null;
-  }, [now, slots, bookings]);
-
-  const quote = QUOTES[(now ? now.getDate() : 0) % QUOTES.length];
-  const mood = checkIn ? moodById(checkIn.mood) : null;
+  const quote = `quote.${(now ? now.getDate() : 0) % 7}`;
 
   if (phase === "loading") {
     return (
@@ -113,7 +91,10 @@ export function InnerHubScreen() {
   if (phase === "warp") {
     return (
       <CosmicWarp
-        message={ENTRY_MESSAGE}
+        message={t("cosmic.message")}
+        kicker={t("cosmic.kicker")}
+        sub={t("cosmic.sub")}
+        skipLabel={t("cosmic.skip")}
         onDone={() => {
           markCosmicSeen();
           setPhase("hub");
@@ -128,78 +109,81 @@ export function InnerHubScreen() {
       <header className="hub-head">
         <div className="hub-topline">
           <p className="date">{dateLabel || "\u00a0"}</p>
-          {checkIn ? (
-            <button
-              type="button"
-              className="checkin-again"
-              onClick={() => setPhase("checkin")}
-            >
-              오늘 체크인 다시하기
-            </button>
-          ) : null}
+          <div className="hub-top-actions">
+            <LangSwitch />
+            {checkIn ? (
+              <button
+                type="button"
+                className="checkin-again"
+                onClick={() => setPhase("checkin")}
+              >
+                {t("hub.checkAgain")}
+              </button>
+            ) : null}
+          </div>
         </div>
         <h1 className="hub-greeting">{greeting}</h1>
-        {checkIn && mood ? (
+        {checkIn ? (
           <p className="hub-checkin-line">
-            오늘의 체크인 · {mood.emoji} {mood.label} · 에너지 {checkIn.energy}/5
+            {t("hub.checkinLine", {
+              mood: moodLabel(checkIn.mood, t),
+              energy: checkIn.energy,
+            })}
           </p>
         ) : null}
       </header>
 
-      <section className="inner-message" aria-label="내면 안내">
+      <section className="inner-message" aria-label={t("hub.kicker")}>
         <span className="inner-orbit" aria-hidden="true" />
-        <p className="inner-kicker">INYOU · INNER SPACE</p>
+        <p className="inner-kicker">{t("hub.kicker")}</p>
         <h2>
-          이제 여긴 당신의 내면입니다.
+          {t("hub.message1")}
           <br />
-          에고를 벗어나 내면에 집중하는 시간입니다.
+          {t("hub.message2")}
         </h2>
-        <p className="inner-sub">
-          세 가지 문 중 오늘 끌리는 곳으로 들어가 보세요. 어디로 들어가도, 끝에는
-          마음기록이 기다리고 있어요.
-        </p>
+        <p className="inner-sub">{t("hub.messageSub")}</p>
       </section>
 
-      <nav className="session-grid" aria-label="세션 선택">
+      <nav className="session-grid" aria-label={t("hub.sessions")}>
         <Link href="/visualization" className="session-card s-vis">
           <span className="session-glyph" aria-hidden="true">
             🌌
           </span>
-          <span className="session-kicker">상상으로 여는</span>
-          <strong>시각화</strong>
-          <span className="session-desc">아침 · 비우기 · 소망</span>
-          <span className="session-meta">가이드 스크립트 · 배경음 선택</span>
-          <span className="session-go">들어가기 ›</span>
+          <span className="session-kicker">{t("hub.vis.kicker")}</span>
+          <strong>{t("tab.visualization")}</strong>
+          <span className="session-desc">{t("hub.vis.desc")}</span>
+          <span className="session-meta">{t("hub.vis.meta")}</span>
+          <span className="session-go">{t("hub.enter")} ›</span>
         </Link>
 
         <Link href="/meditation" className="session-card s-med">
           <span className="session-glyph" aria-hidden="true">
             🫧
           </span>
-          <span className="session-kicker">숨으로 돌아오는</span>
-          <strong>명상</strong>
-          <span className="session-desc">3 · 10 · 20 · 30분 · 타이머</span>
-          <span className="session-meta">호흡 · 바디스캔 · 자유 명상</span>
-          <span className="session-go">들어가기 ›</span>
+          <span className="session-kicker">{t("hub.med.kicker")}</span>
+          <strong>{t("tab.meditation")}</strong>
+          <span className="session-desc">{t("hub.med.desc")}</span>
+          <span className="session-meta">{t("hub.med.meta")}</span>
+          <span className="session-go">{t("hub.enter")} ›</span>
         </Link>
 
         <Link href="/affirmations" className="session-card s-aff">
           <span className="session-glyph" aria-hidden="true">
             ✶
           </span>
-          <span className="session-kicker">말로 새기는</span>
-          <strong>확언</strong>
-          <span className="session-desc">긍정 · 부 · 자녀 · 비젼</span>
-          <span className="session-meta">한·영 120문장 · 나만의 확언</span>
-          <span className="session-go">들어가기 ›</span>
+          <span className="session-kicker">{t("hub.aff.kicker")}</span>
+          <strong>{t("tab.affirmations")}</strong>
+          <span className="session-desc">{t("hub.aff.desc")}</span>
+          <span className="session-meta">{t("hub.aff.meta")}</span>
+          <span className="session-go">{t("hub.enter")} ›</span>
         </Link>
       </nav>
 
-      <section className="hub-recommend" aria-label="지금 추천">
+      <section className="hub-recommend" aria-label={t("hub.recommend")}>
         <div className="hub-recommend-head">
-          <span className="tiny">{recommendation.kicker}</span>
+          <span className="tiny">{t(REC_KICKERS[hourBucket(hour)] ?? "rec.midday")}</span>
           <Link className="link" href={`/player/${recommendation.course.id}`}>
-            바로 시작
+            {t("hub.startNow")}
           </Link>
         </div>
         <Link href={`/player/${recommendation.course.id}`} className="hub-recommend-card">
@@ -209,10 +193,14 @@ export function InnerHubScreen() {
           <span className="txt">
             <b>{recommendation.course.title}</b>
             <span>
-              {THEMES[recommendation.course.theme].label} · {recommendation.course.subtitle}
+              {t("player.breathing", {
+                inhale: recommendation.course.breath.inhale,
+                hold: recommendation.course.breath.hold,
+                exhale: recommendation.course.breath.exhale,
+              })}
             </span>
           </span>
-          <span className="mins">{recommendation.course.minutes}분</span>
+          <span className="mins">{t("common.minutes", { n: recommendation.course.minutes })}</span>
         </Link>
       </section>
 
@@ -220,26 +208,26 @@ export function InnerHubScreen() {
 
       <div className="stat-row">
         <div className="stat">
-          <b>{hydrated ? `${streak}일` : "–"}</b>
-          <span>연속 기록</span>
+          <b>{hydrated ? `${streak}` : "–"}</b>
+          <span>{t("hub.contScan")}</span>
         </div>
         <div className="stat">
-          <b>{hydrated ? `${stats.sessions}회` : "–"}</b>
-          <span>이번 주 세션</span>
+          <b>{hydrated ? `${stats.sessions}` : "–"}</b>
+          <span>{t("hub.weekSessions")}</span>
         </div>
         <div className="stat">
-          <b>{hydrated ? `${stats.diaryDays}일` : "–"}</b>
-          <span>이번 주 기록</span>
+          <b>{hydrated ? `${stats.diaryDays}` : "–"}</b>
+          <span>{t("hub.weekRecords")}</span>
         </div>
       </div>
 
       <div className="section-head">
-        <h2>이번 주 마음</h2>
+        <h2>{t("hub.thisWeekMind")}</h2>
         <Link className="link" href="/diary">
-          마음기록 보기
+          {t("hub.openDiary")}
         </Link>
       </div>
-      <div className="card week" aria-label="이번 주 감정">
+      <div className="card week" aria-label={t("hub.thisWeekMind")}>
         <div className="week-row">
           {(week.length
             ? week
@@ -251,62 +239,69 @@ export function InnerHubScreen() {
                 mood: null,
                 count: 0,
               }))
-          ).map((item) => {
-            const dayMood = item.mood ? moodById(item.mood) : null;
-            return (
-              <div
-                key={item.key}
-                className={`day ${dayMood ? "has" : ""} ${item.isToday ? "today" : ""}`}
-              >
-                <div className="d">{item.weekday}</div>
-                <div className="m" aria-hidden="true">
-                  {dayMood ? dayMood.emoji : "·"}
-                </div>
-                <div className="n">{item.day || ""}</div>
+          ).map((item) => (
+            <div
+              key={item.key}
+              className={`day ${item.mood ? "has" : ""} ${item.isToday ? "today" : ""}`}
+            >
+              <div className="d">{item.weekday}</div>
+              <div className="m" aria-hidden="true">
+                {item.mood ? moodEmoji(item.mood) : "·"}
               </div>
-            );
-          })}
+              <div className="n">{item.day || ""}</div>
+            </div>
+          ))}
         </div>
       </div>
 
       <div className="section-head">
-        <h2>1:1 마이크로 상담</h2>
-        <span className="tiny">
-          {HOST.displayName} · {HOST.role}
-        </span>
+        <h2>{t("hub.counsel")}</h2>
+        <span className="tiny">{HOST.displayName}</span>
       </div>
       <div className="card consult-teaser">
         <div className="host-avatar" aria-hidden="true">
           {HOST.initial}
         </div>
         <div className="txt">
-          {nextSlot ? (
-            <>
-              <b>
-                {nextSlot.offset === 0 ? "오늘" : "내일"} {nextSlot.time}에 3분 남았어요
-              </b>
-              <p>{fmtWon(3900)}부터 · 마음기록을 바탕으로 이야기해요.</p>
-            </>
-          ) : (
-            <>
-              <b>이번 주 슬롯을 준비 중이에요</b>
-              <p>
-                {mode === "supabase"
-                  ? "호스트가 시간을 열면 바로 예약할 수 있어요."
-                  : "호스트 모드에서 시간을 열면 바로 예약할 수 있어요."}
-              </p>
-            </>
-          )}
+          <b>{t("hub.counsel")}</b>
+          <p>{t("hub.counselDesc")}</p>
         </div>
-        <Link className="go" href="/counseling">
-          예약 ›
+        <CounselButton className="go">›</CounselButton>
+      </div>
+
+      <div className="hub-links">
+        <Link href="/growth" className="hub-link">
+          🌱 {t("growth.title")}
+        </Link>
+        <Link href="/studio" className="hub-link">
+          ✶ {t("studio.link")}
+        </Link>
+        <Link href="/affirmations" className="hub-link">
+          🗂 {t("tab.affirmations")}
         </Link>
       </div>
 
-      <p className="quote">{quote}</p>
+      <p className="quote">{t(quote)}</p>
       <p className="tiny" style={{ textAlign: "center", marginTop: 4 }}>
-        {COURSES.length}개 코스 · 확언 120문장 · 기록은 이 기기에만 저장돼요
+        {t("hub.footer", { courses: COURSES.length })}
+      </p>
+      <p className="tiny" style={{ textAlign: "center" }}>
+        {t("common.localOnly")}
       </p>
     </main>
   );
+}
+
+function moodEmoji(id: string) {
+  const map: Record<string, string> = {
+    calm: "😌",
+    good: "🙂",
+    flat: "😐",
+    heavy: "😔",
+    anxious: "😣",
+    angry: "😤",
+    tired: "🥱",
+    hope: "🌤️",
+  };
+  return map[id] ?? "·";
 }

@@ -8,6 +8,7 @@ import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { useWakeLock } from "@/hooks/useWakeLock";
 import { AmbientSound, SOUND_OPTIONS, type SoundId } from "@/lib/audio/ambient";
 import { THEMES } from "@/lib/constants";
+import { useI18n } from "@/lib/i18n/LangProvider";
 import { fmtClock, pad2 } from "@/lib/date";
 import { newLocalId } from "@/lib/media";
 import { readJson, writeJson } from "@/lib/storage";
@@ -39,6 +40,7 @@ function loadTimerSessions(): TimerSession[] {
 export function TimerScreen() {
   const router = useRouter();
   const { recordPlay, toast } = useApp();
+  const { t } = useI18n();
   const reducedMotion = usePrefersReducedMotion();
   const wakeLock = useWakeLock();
   const requestWakeLock = wakeLock.request;
@@ -118,7 +120,7 @@ export function TimerScreen() {
       baseRef.current + (running ? (Date.now() - startRef.current) / 1000 : 0),
     );
     if (seconds < 10) {
-      toast("10초 이상 앉은 뒤에 기록할 수 있어요");
+      toast(t("timer.tooShort"));
       return;
     }
     finishRef.current = true;
@@ -142,7 +144,7 @@ export function TimerScreen() {
 
     const minutes = Math.max(0.1, Math.round((seconds / 60) * 10) / 10);
     await recordPlay("timer", minutes, seconds);
-    toast(`${fmtDuration(seconds)} 기록했어요`);
+    toast(t("timer.recorded", { time: fmtDuration(seconds, t) }));
 
     baseRef.current = 0;
     startedAtRef.current = null;
@@ -168,14 +170,14 @@ export function TimerScreen() {
     <main className="timer-page" data-theme={theme} style={{ background: themeMeta.background }}>
       <div className="timer-inner">
         <header className="timer-head">
-          <Link href="/meditation" className="icon-btn player-icon" aria-label="명상으로 돌아가기">
+          <Link href="/meditation" className="icon-btn player-icon" aria-label={t("common.back")}>
             ‹
           </Link>
           <div className="titles">
-            <p className="player-kicker">자유 명상 타이머</p>
-            <h2>원하는 만큼 앉아 있어요</h2>
+            <p className="player-kicker">{t("timer.kicker")}</p>
+            <h2>{t("timer.title")}</h2>
           </div>
-          <span className="timer-live">{running ? "진행 중" : finished ? "기록됨" : "대기"}</span>
+          <span className="timer-live">{running ? t("timer.state.running") : finished ? t("timer.state.done") : t("timer.state.idle")}</span>
         </header>
 
         <div className={`timer-clock ${running ? "running" : ""} ${reducedMotion ? "still" : ""}`}>
@@ -183,20 +185,20 @@ export function TimerScreen() {
           <span className="timer-value">{fmtClock(elapsed)}</span>
           <span className="timer-caption">
             {finished !== null
-              ? `${fmtDuration(finished)}를 기록했어요`
+              ? t("timer.recorded", { time: fmtDuration(finished, t) })
               : running
-                ? "숨이 들어오는 곳에 머물러 보세요"
+                ? t("timer.caption.running")
                 : elapsed > 0
-                  ? "잠시 멈춰 있어요"
-                  : "시작 버튼을 누르면 시간이 흘러요"}
+                  ? t("timer.caption.paused")
+                  : t("timer.caption.idle")}
           </span>
         </div>
 
         {finished !== null ? (
           <div className="timer-result">
-            <p className="timer-result-big">{fmtDuration(finished)}</p>
+            <p className="timer-result-big">{fmtDuration(finished, t)}</p>
             <p className="timer-result-sub">
-              오늘의 명상이 기록에 남았어요. 이제 마음에 남은 것을 적어볼까요?
+              {t("timer.resultSub")}
             </p>
             <div className="timer-result-actions">
               <button
@@ -205,28 +207,28 @@ export function TimerScreen() {
                 onClick={() =>
                   router.push(
                     `/diary?moment=after&from=timer&seconds=${finished}&label=${encodeURIComponent(
-                      fmtDuration(finished),
+                      fmtDuration(finished, t),
                     )}`,
                   )
                 }
               >
-                마음기록 남기기
+                {t("timer.toDiary")}
               </button>
               <button type="button" className="btn ghost" onClick={reset}>
-                다시 시작
+                {t("timer.again")}
               </button>
             </div>
           </div>
         ) : (
           <div className="timer-controls">
-            <button type="button" className="ctrl" onClick={reset} aria-label="처음부터">
+            <button type="button" className="ctrl" onClick={reset} aria-label={t("common.reset")}>
               ↺
             </button>
             <button
               type="button"
               className="ctrl main"
               onClick={running ? pause : start}
-              aria-label={running ? "일시정지" : "시작"}
+              aria-label={running ? t("timer.pause") : t("timer.start")}
             >
               {running ? "❚❚" : "▶"}
             </button>
@@ -234,7 +236,7 @@ export function TimerScreen() {
               type="button"
               className="ctrl end"
               onClick={finish}
-              aria-label="명상 마치기"
+              aria-label={t("timer.record")}
               disabled={elapsed < 10}
             >
               ■
@@ -243,13 +245,11 @@ export function TimerScreen() {
         )}
 
         <p className="timer-note">
-          {running
-            ? "끝나고 싶은 순간에 ■ 를 누르면 실제 앉아 있던 시간이 분:초로 저장돼요."
-            : "시간을 정하지 않고, 몸이 원하는 만큼 앉아요. 화면이 꺼지지 않도록 유지돼요."}
+          {running ? t("timer.noteRunning") : t("timer.noteIdle")}
         </p>
 
         <div className="timer-panel">
-          <p className="panel-label">배경</p>
+          <p className="panel-label">{t("timer.background")}</p>
           <div className="chips">
             {(Object.keys(THEMES) as ThemeId[]).map((id) => (
               <button
@@ -259,11 +259,11 @@ export function TimerScreen() {
                 onClick={() => setTheme(id)}
                 aria-pressed={theme === id}
               >
-                {THEMES[id].label}
+                {t(`theme.${id}`)}
               </button>
             ))}
           </div>
-          <p className="panel-label">사운드</p>
+          <p className="panel-label">{t("timer.sound")}</p>
           <div className="chips">
             {SOUND_OPTIONS.map((option) => (
               <button
@@ -273,21 +273,21 @@ export function TimerScreen() {
                 onClick={() => playSound(option.id)}
                 aria-pressed={sound === option.id}
               >
-                {option.label}
+                {t(`sound.${option.id}`)}
               </button>
             ))}
           </div>
           <div className="player-hint">
-            <span>{wakeLock.supported ? "화면 꺼짐 방지" : "화면 유지 미지원"}</span>
-            <span>이번 주 타이머 {fmtDuration(totalThisWeek)}</span>
+            <span>{wakeLock.supported ? t("player.wake") : t("player.wakeUnsupported")}</span>
+            <span>{t("timer.weekTotal", { time: fmtDuration(totalThisWeek, t) })}</span>
           </div>
         </div>
 
         {sessions.length > 0 ? (
-          <section className="timer-history" aria-label="최근 타이머 기록">
+          <section className="timer-history" aria-label={t("timer.history")}>
             <div className="section-head" style={{ margin: "22px 0 8px" }}>
-              <h2>최근 타이머 기록</h2>
-              <span className="tiny">{sessions.length}개</span>
+              <h2>{t("timer.history")}</h2>
+              <span className="tiny">{sessions.length}</span>
             </div>
             <ul>
               {sessions.map((entry) => {
@@ -299,13 +299,13 @@ export function TimerScreen() {
                         ended.getMinutes(),
                       )}`}
                     </span>
-                    <b>{fmtDuration(entry.seconds)}</b>
+                    <b>{fmtDuration(entry.seconds, t)}</b>
                   </li>
                 );
               })}
             </ul>
             <Link href="/diary" className="link" style={{ display: "inline-block", marginTop: 10 }}>
-              마음기록에서 함께 보기 ›
+              {t("timer.toDiaryList")} ›
             </Link>
           </section>
         ) : null}
@@ -314,10 +314,13 @@ export function TimerScreen() {
   );
 }
 
-function fmtDuration(seconds: number) {
+function fmtDuration(
+  seconds: number,
+  t: (key: string, vars?: Record<string, string | number>) => string,
+) {
   const total = Math.max(0, Math.round(seconds));
   const m = Math.floor(total / 60);
   const s = total % 60;
-  if (m === 0) return `${s}초`;
-  return `${m}분 ${pad2(s)}초`;
+  if (m === 0) return `${s}${t("common.seconds")}`;
+  return `${m}${t("common.min")} ${pad2(s)}${t("common.seconds")}`;
 }

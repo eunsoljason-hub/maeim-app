@@ -8,17 +8,20 @@ import { LifeRoadmap } from "@/components/growth/LifeRoadmap";
 import { Mandalart } from "@/components/growth/Mandalart";
 import { NeedsPyramid } from "@/components/growth/NeedsPyramid";
 import { defaultGrowth, loadGrowth, saveGrowth, type GrowthState } from "@/lib/growth";
+import { useI18n } from "@/lib/i18n/LangProvider";
+import { LangSwitch } from "@/components/i18n/LangSwitch";
 
 const TOOLS = [
-  { id: "needs", label: "욕구 피라미드", glyph: "▲" },
-  { id: "hex", label: "인생 육각형", glyph: "⬡" },
-  { id: "roadmap", label: "인생 로드맵", glyph: "↧" },
-  { id: "mandalart", label: "만다라트", glyph: "▦" },
+  { id: "needs", key: "growth.tab.needs", glyph: "▲" },
+  { id: "hex", key: "growth.tab.hex", glyph: "⬡" },
+  { id: "roadmap", key: "growth.tab.roadmap", glyph: "↧" },
+  { id: "mandalart", key: "growth.tab.mandalart", glyph: "▦" },
 ] as const;
 
 type ToolId = (typeof TOOLS)[number]["id"];
 
 export function GrowthScreen() {
+  const { t } = useI18n();
   const [state, setState] = useState<GrowthState>(defaultGrowth);
   const [ready, setReady] = useState(false);
   const [tool, setTool] = useState<ToolId>("needs");
@@ -38,15 +41,18 @@ export function GrowthScreen() {
       <LifeDirectionBanner />
       <header className="view-head">
         <div>
-          <p className="eyebrow">나를 아는 네 가지 도구</p>
-          <h1>성장</h1>
+          <p className="eyebrow">{t("growth.eyebrow")}</p>
+          <h1>{t("growth.title")}</h1>
         </div>
-        <Link className="tag" href="/">
-          내면으로
-        </Link>
+        <div className="view-head-right">
+          <LangSwitch />
+          <Link className="tag" href="/">
+            {t("growth.toInner")}
+          </Link>
+        </div>
       </header>
 
-      <div className="growth-tabs" role="tablist" aria-label="성장 도구">
+      <div className="growth-tabs" role="tablist" aria-label={t("growth.title")}>
         {TOOLS.map((item) => (
           <button
             key={item.id}
@@ -57,7 +63,7 @@ export function GrowthScreen() {
             onClick={() => setTool(item.id)}
           >
             <span aria-hidden="true">{item.glyph}</span>
-            {item.label}
+            {t(item.key)}
           </button>
         ))}
       </div>
@@ -78,8 +84,7 @@ export function GrowthScreen() {
       )}
 
       <p className="growth-footnote">
-        네 도구는 모두 이 기기에 저장돼요. 정답을 맞히는 표가 아니라, 지금의 나를 비춰보는
-        거울로 써 주세요.
+        {t("growth.footnote")}
       </p>
     </main>
   );

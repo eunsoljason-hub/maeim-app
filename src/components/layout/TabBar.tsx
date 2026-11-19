@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import { useI18n } from "@/lib/i18n/LangProvider";
 
 const TABS = [
   {
     href: "/",
-    label: "내면",
+    labelKey: "tab.home",
     match: (path: string) => path === "/",
     icon: (
       <>
@@ -19,7 +20,7 @@ const TABS = [
   },
   {
     href: "/meditation",
-    label: "명상",
+    labelKey: "tab.meditation",
     match: (path: string) => path.startsWith("/meditation"),
     icon: (
       <>
@@ -31,7 +32,7 @@ const TABS = [
   },
   {
     href: "/visualization",
-    label: "시각화",
+    labelKey: "tab.visualization",
     match: (path: string) => path.startsWith("/visualization"),
     icon: (
       <>
@@ -41,7 +42,7 @@ const TABS = [
   },
   {
     href: "/affirmations",
-    label: "확언",
+    labelKey: "tab.affirmations",
     match: (path: string) => path.startsWith("/affirmations"),
     icon: (
       <>
@@ -52,7 +53,7 @@ const TABS = [
   },
   {
     href: "/growth",
-    label: "성장",
+    labelKey: "tab.growth",
     match: (path: string) => path.startsWith("/growth"),
     icon: (
       <>
@@ -64,7 +65,7 @@ const TABS = [
   },
   {
     href: "/diary",
-    label: "기록",
+    labelKey: "tab.diary",
     match: (path: string) => path.startsWith("/diary"),
     icon: (
       <>
@@ -78,6 +79,7 @@ const TABS = [
 
 export function TabBar() {
   const pathname = usePathname() ?? "/";
+  const { t } = useI18n();
 
   return (
     <nav className="tabbar" aria-label="주요 메뉴">
@@ -93,7 +95,7 @@ export function TabBar() {
             <svg viewBox="0 0 24 24" aria-hidden="true">
               {tab.icon}
             </svg>
-            <span>{tab.label}</span>
+            <span>{t(tab.labelKey)}</span>
           </Link>
         );
       })}

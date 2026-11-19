@@ -686,3 +686,9 @@ export const COMMERCE_INFO = {
 } as const;
 
 export const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "";
+
+/**
+ * 1:1 상담은 외부 예약 페이지로 연결한다.
+ * Vercel 환경변수 NEXT_PUBLIC_COUNSELING_URL 하나만 바꾸면 앱 전체 버튼이 그 주소로 열린다.
+ */
+export const COUNSELING_URL = process.env.NEXT_PUBLIC_COUNSELING_URL ?? "";

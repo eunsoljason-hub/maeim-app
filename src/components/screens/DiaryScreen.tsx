@@ -4,11 +4,15 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useApp } from "@/components/providers/AppProvider";
 import { PracticeStatsCard } from "@/components/practice/PracticeStatsCard";
-import { buildWeeklyBriefing, weekMoodStrip } from "@/lib/briefing";
-import { HOST, MOODS, moodById } from "@/lib/constants";
-import { dateKey, fmtDateLong, fmtDateShort } from "@/lib/date";
-import { ENERGY_LABELS, loadTodayCheckIn } from "@/lib/checkin";
+import { LifeDirectionBanner } from "@/components/practice/LifeDirectionBanner";
+import { LangSwitch } from "@/components/i18n/LangSwitch";
 import { MonthAgoCard } from "@/components/diary/MonthAgoCard";
+import { MOODS, moodById } from "@/lib/constants";
+import { dateKey } from "@/lib/date";
+import { ENERGY_LABELS, loadTodayCheckIn } from "@/lib/checkin";
+import { useI18n, formatDateKey, formatDateShort } from "@/lib/i18n/LangProvider";
+import { moodLabel } from "@/lib/i18n/labels";
+import { weekMoodStrip } from "@/lib/briefing";
 import {
   EMPTY_EXTRAS,
   MAX_MEDIA_PER_ENTRY,
@@ -26,16 +30,9 @@ import {
   type DiaryMediaMeta,
 } from "@/lib/media";
 import type { DiaryMoment, MoodId } from "@/lib/types";
-import { LifeDirectionBanner } from "@/components/practice/LifeDirectionBanner";
-
-const PROMPTS = [
-  { label: "오늘 있었던 일", fill: "오늘 있었던 일: " },
-  { label: "몸의 느낌", fill: "몸이 느낀 것: " },
-  { label: "내일의 나에게", fill: "내일의 나에게: " },
-];
 
 interface SessionContext {
-  title: string;
+  type: string;
   detail: string;
 }
 
@@ -49,26 +46,26 @@ function readSessionContext(params: URLSearchParams): SessionContext | null {
 
   if (from === "player" && session === "visualization") {
     return {
-      title: "시각화를 마치고",
-      detail: `${label ?? "시각화"}${minutes ? ` · ${minutes}분` : ""} · 장면을 마음에 남겼어요`,
+      type: "diary.session.visualization",
+      detail: `${label ?? ""}${minutes ? ` · ${minutes}min` : ""}`,
     };
   }
   if (from === "player" && session === "meditation") {
     return {
-      title: "명상을 마치고",
-      detail: `${label ?? "명상"}${minutes ? ` · ${minutes}분` : ""} · 숨을 고르고 돌아왔어요`,
+      type: "diary.session.meditation",
+      detail: `${label ?? ""}${minutes ? ` · ${minutes}min` : ""}`,
     };
   }
   if (from === "timer") {
     return {
-      title: "자유 명상을 마치고",
-      detail: `${label ?? (seconds ? `${Math.round(Number(seconds) / 60)}분` : "타이머 명상")}를 기록했어요`,
+      type: "diary.session.timer",
+      detail: label ?? (seconds ? `${Math.round(Number(seconds) / 60)}min` : ""),
     };
   }
   if (from === "affirmations") {
     return {
-      title: "확언을 마치고",
-      detail: `${session ?? "확언"}${count ? ` · ${count}문장` : ""} · 말로 오늘을 새겼어요`,
+      type: "diary.session.affirmations",
+      detail: `${session ?? ""}${count ? ` · ${count}` : ""}`,
     };
   }
   return null;
@@ -76,8 +73,9 @@ function readSessionContext(params: URLSearchParams): SessionContext | null {
 
 export function DiaryScreen() {
   const { diaries, saveDiary, removeDiary, mode, hydrated, toast } = useApp();
+  const { t, lang } = useI18n();
 
-  const [moment, setMoment] = useState<DiaryMoment>("before");
+  const [moment, setMoment] = useState<DiaryMoment>("after");
   const [mood, setMood] = useState<MoodId | null>(null);
   const [intensity, setIntensity] = useState(3);
   const [energy, setEnergy] = useState(3);
@@ -98,6 +96,7 @@ export function DiaryScreen() {
   const [recordSeconds, setRecordSeconds] = useState(0);
   const [extrasMap, setExtrasMap] = useState<Record<string, DiaryExtras>>({});
   const [audioTick, setAudioTick] = useState(0);
+  const [voiceSupported, setVoiceSupported] = useState(true);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -106,7 +105,16 @@ export function DiaryScreen() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const recordSecondsRef = useRef(0);
 
-  /* Quick-mood taps and session completions arrive as query params. */
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setVoiceSupported(
+        typeof window.MediaRecorder !== "undefined" &&
+          typeof navigator !== "undefined" &&
+          Boolean(navigator.mediaDevices?.getUserMedia),
+      );
+    }
+  }, []);
+
   useEffect(() => {
     if (incomingApplied.current) return;
     const params = new URLSearchParams(window.location.search);
@@ -140,10 +148,6 @@ export function DiaryScreen() {
   }, []);
 
   const week = useMemo(() => (hydrated ? weekMoodStrip(diaries) : []), [diaries, hydrated]);
-  const briefing = useMemo(
-    () => (hydrated ? buildWeeklyBriefing(diaries) : null),
-    [diaries, hydrated],
-  );
   const sorted = useMemo(
     () => [...diaries].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
     [diaries],
@@ -152,7 +156,7 @@ export function DiaryScreen() {
   const addLink = () => {
     const normalized = normalizeUrl(linkInput);
     if (!normalized) {
-      toast("http:// 또는 https:// 주소를 적어주세요");
+      toast(t("diary.linkInvalid"));
       return;
     }
     setLinks((prev) => [
@@ -166,7 +170,7 @@ export function DiaryScreen() {
   const onPickFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     if (media.length >= MAX_MEDIA_PER_ENTRY) {
-      toast(`첨부는 ${MAX_MEDIA_PER_ENTRY}개까지 가능해요`);
+      toast(t("diary.mediaFull", { n: MAX_MEDIA_PER_ENTRY }));
       return;
     }
     setUploading(true);
@@ -178,24 +182,32 @@ export function DiaryScreen() {
         const { meta } = await prepareMediaFile(file);
         added.push(meta);
       } catch (error) {
-        toast(error instanceof Error ? error.message : "파일을 붙이지 못했어요");
+        toast(error instanceof Error ? error.message : t("diary.media"));
       }
     }
     if (added.length) {
       setMedia((prev) => [...prev, ...added]);
-      toast(`${added.length}개 첨부했어요`);
+      toast(t("diary.attached", { n: added.length }));
     }
     setUploading(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const startRecording = useCallback(async () => {
-    if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
-      toast("이 브라우저는 녹음을 지원하지 않아요. 문자로 남겨 주세요.");
-      return;
+  const stopRecording = useCallback(() => {
+    if (recordTimerRef.current) window.clearInterval(recordTimerRef.current);
+    recordTimerRef.current = null;
+    setRecording(false);
+    try {
+      mediaRecorderRef.current?.stop();
+    } catch {
+      /* already stopped */
     }
-    if (typeof window === "undefined" || typeof window.MediaRecorder === "undefined") {
-      toast("이 브라우저는 녹음을 지원하지 않아요. 문자로 남겨 주세요.");
+    mediaRecorderRef.current = null;
+  }, []);
+
+  const startRecording = useCallback(async () => {
+    if (!voiceSupported) {
+      toast(t("diary.voiceUnsupported"));
       return;
     }
     try {
@@ -212,16 +224,16 @@ export function DiaryScreen() {
         streamRef.current?.getTracks().forEach((track) => track.stop());
         streamRef.current = null;
         if (blob.size < 400 || seconds < 1) {
-          toast("녹음이 너무 짧아 저장하지 않았어요");
+          toast(t("diary.voiceTooShort"));
           return;
         }
         try {
           const meta = await prepareAudioBlob(blob, seconds);
           setMedia((prev) => [...prev, meta]);
           setAudioTick((value) => value + 1);
-          toast(`${seconds}초 음성 기록을 붙였어요`);
+          toast(t("diary.voiceSaved", { n: seconds }));
         } catch (error) {
-          toast(error instanceof Error ? error.message : "녹음을 저장하지 못했어요");
+          toast(error instanceof Error ? error.message : t("diary.voiceUnsupported"));
         }
       };
       recorder.start();
@@ -235,23 +247,10 @@ export function DiaryScreen() {
         if (recordSecondsRef.current >= 180) stopRecording();
       }, 1000);
     } catch {
-      toast("마이크 권한이 필요해요. 허용 후 다시 시도해 주세요.");
+      toast(t("diary.voiceDenied"));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toast]);
-
-
-  const stopRecording = useCallback(() => {
-    if (recordTimerRef.current) window.clearInterval(recordTimerRef.current);
-    recordTimerRef.current = null;
-    setRecording(false);
-    try {
-      mediaRecorderRef.current?.stop();
-    } catch {
-      /* already stopped */
-    }
-    mediaRecorderRef.current = null;
-  }, []);
+  }, [toast, voiceSupported]);
 
   useEffect(() => {
     return () => {
@@ -286,7 +285,7 @@ export function DiaryScreen() {
 
   const onSave = async () => {
     if (!mood) {
-      toast("오늘의 감정을 하나 골라주세요");
+      toast(t("diary.needMood"));
       return;
     }
     if (saving) return;
@@ -298,26 +297,20 @@ export function DiaryScreen() {
         mood,
         intensity,
         energy,
-        sessionLabel: session?.title,
+        sessionLabel: session ? t(session.type) : undefined,
         text,
       });
       const extras: DiaryExtras = { links, media };
       if (links.length || media.length) {
         const stored = saveDiaryExtras(entry.id, extras);
-        if (!stored) {
-          toast("기록은 저장됐지만 첨부 목록이 너무 커요. 일부만 남았어요.");
-        }
+        if (!stored) toast(t("diary.extrasFull"));
         setExtrasMap(loadExtrasMap());
       }
       resetDraft();
-      toast(
-        mode === "supabase"
-          ? "마음기록을 저장했어요. 내 계정에만 보관돼요."
-          : "마음기록을 저장했어요. 이 기기에만 보관돼요.",
-      );
+      toast(mode === "supabase" ? t("diary.savedAccount") : t("diary.savedLocal"));
       setAudioTick((value) => value + 1);
     } catch (error) {
-      toast(error instanceof Error ? error.message : "저장하지 못했어요");
+      toast(error instanceof Error ? error.message : t("diary.saving"));
     } finally {
       setSaving(false);
     }
@@ -335,9 +328,9 @@ export function DiaryScreen() {
       removeDiaryExtras(id);
       await removeDiary(id);
       setExtrasMap(loadExtrasMap());
-      toast("기록을 지웠어요");
+      toast(t("diary.deleteDone"));
     } catch (error) {
-      toast(error instanceof Error ? error.message : "삭제하지 못했어요");
+      toast(error instanceof Error ? error.message : t("common.delete"));
     }
   };
 
@@ -353,9 +346,9 @@ export function DiaryScreen() {
       for (const entry of diaries) removeDiaryExtras(entry.id);
       await Promise.all(diaries.map((entry) => removeDiary(entry.id)));
       setExtrasMap({});
-      toast("이 기기의 마음기록을 모두 지웠어요");
+      toast(t("diary.deleteAllDone"));
     } catch {
-      toast("일부 기록을 지우지 못했어요");
+      toast(t("diary.deleteDone"));
     }
   };
 
@@ -364,10 +357,13 @@ export function DiaryScreen() {
       <LifeDirectionBanner />
       <header className="view-head">
         <div>
-          <p className="eyebrow">세션 뒤에 남는 것</p>
-          <h1>마음기록</h1>
+          <p className="eyebrow">{t("diary.eyebrow")}</p>
+          <h1>{t("diary.title")}</h1>
         </div>
-        <span className="tag">{diaries.length}개</span>
+        <div className="view-head-right">
+          <LangSwitch />
+          <span className="tag">{t("diary.count", { n: diaries.length })}</span>
+        </div>
       </header>
 
       <PracticeStatsCard compact />
@@ -376,27 +372,27 @@ export function DiaryScreen() {
 
       {session ? (
         <div className="session-done">
-          <span className="session-done-badge">세션 완료</span>
-          <b>{session.title}</b>
+          <span className="session-done-badge">{t("diary.sessionDone")}</span>
+          <b>{t(session.type)}</b>
           <p>{session.detail}</p>
-          <span className="tiny">지금의 마음을 문자·음성·링크·사진으로 남겨보세요.</span>
+          <span className="tiny">{t("diary.todayHint")}</span>
         </div>
       ) : null}
 
       <div className="today-head">
         <div>
-          <p className="eyebrow">오늘의 기록</p>
-          <b>{fmtDateLong(dateKey())}</b>
+          <p className="eyebrow">{t("diary.today")}</p>
+          <b>{formatDateKey(dateKey(), lang)}</b>
         </div>
-        <span className="tiny">문자 · 음성 · 링크 · 사진</span>
+        <span className="tiny">{t("diary.todayHint")}</span>
       </div>
 
       <section className="card diary-form">
         <div className="form-label">
-          <span>지금 감정</span>
-          <span className="tiny">하나만 골라도 좋아요</span>
+          <span>{t("diary.mood")}</span>
+          <span className="tiny">{t("diary.moodHint")}</span>
         </div>
-        <div className="mood-grid" role="group" aria-label="감정 선택">
+        <div className="mood-grid" role="group" aria-label={t("diary.mood")}>
           {MOODS.map((item) => (
             <button
               key={item.id}
@@ -408,16 +404,16 @@ export function DiaryScreen() {
               <span className="e" aria-hidden="true">
                 {item.emoji}
               </span>
-              <span className="l">{item.label}</span>
+              <span className="l">{moodLabel(item.id, t)}</span>
             </button>
           ))}
         </div>
 
         <div className="form-label" style={{ marginTop: 18 }}>
-          <span>마음의 크기</span>
+          <span>{t("diary.intensity")}</span>
           <span className="tiny">{intensity}/5</span>
         </div>
-        <div className="intensity" role="group" aria-label="마음의 크기">
+        <div className="intensity" role="group" aria-label={t("diary.intensity")}>
           {[1, 2, 3, 4, 5].map((value) => (
             <button
               key={value}
@@ -425,21 +421,21 @@ export function DiaryScreen() {
               className={`dot ${intensity === value ? "on" : ""}`}
               onClick={() => setIntensity(value)}
               aria-pressed={intensity === value}
-              aria-label={`마음의 크기 ${value}`}
+              aria-label={`${t("diary.intensity")} ${value}`}
             >
               {value}
             </button>
           ))}
-          <span className="scale-note">작게 — 크게</span>
+          <span className="scale-note">{t("diary.intensityScale")}</span>
         </div>
 
         <div className="form-label" style={{ marginTop: 18 }}>
-          <span>오늘의 에너지</span>
+          <span>{t("diary.energy")}</span>
           <span className="tiny">
-            {energy}/5 · {ENERGY_LABELS[energy]}
+            {energy}/5 · {t(`energy.${energy}`)}
           </span>
         </div>
-        <div className="intensity" role="group" aria-label="오늘의 에너지">
+        <div className="intensity" role="group" aria-label={t("diary.energy")}>
           {[1, 2, 3, 4, 5].map((value) => (
             <button
               key={value}
@@ -447,52 +443,53 @@ export function DiaryScreen() {
               className={`dot ${energy === value ? "on" : ""}`}
               onClick={() => setEnergy(value)}
               aria-pressed={energy === value}
-              aria-label={`에너지 ${value}`}
+              aria-label={`${t("diary.energy")} ${value}`}
             >
               {value}
             </button>
           ))}
-          <span className="scale-note">지침 — 충만</span>
+          <span className="scale-note">{t("diary.energyScale")}</span>
         </div>
 
         <div className="form-label" style={{ marginTop: 18 }}>
-          <span>문자 기록</span>
-          <span className="tiny">한 줄도 괜찮아요 · 최대 600자</span>
+          <span>{t("diary.text")}</span>
+          <span className="tiny">{t("diary.textHint")}</span>
         </div>
         <textarea
           className="diary-textarea"
           maxLength={600}
           value={text}
           onChange={(event) => setText(event.target.value)}
-          placeholder="오늘 마음에 남은 것을 적어보세요. 아무도 평가하지 않아요."
-          aria-label="마음기록 본문"
+          placeholder={t("diary.textPh")}
+          aria-label={t("diary.text")}
         />
         <div className="prompt-chips">
-          {PROMPTS.map((prompt) => (
-            <button
-              key={prompt.fill}
-              type="button"
-              className="pchip"
-              onClick={() => {
-                setText((prev) =>
-                  prev ? `${prev.replace(/\s*$/, "")}\n${prompt.fill}` : prompt.fill,
-                );
-                window.setTimeout(() => {
-                  const area = document.querySelector<HTMLTextAreaElement>(".diary-textarea");
-                  area?.focus();
-                  area?.setSelectionRange(area.value.length, area.value.length);
-                }, 0);
-              }}
-            >
-              {prompt.label}
-            </button>
-          ))}
+          {[1, 2, 3].map((n) => {
+            const label = t(`diary.prompt${n}`);
+            return (
+              <button
+                key={n}
+                type="button"
+                className="pchip"
+                onClick={() => {
+                  const fill = `${label}: `;
+                  setText((prev) => (prev ? `${prev.replace(/\s*$/, "")}\n${fill}` : fill));
+                  window.setTimeout(() => {
+                    const area = document.querySelector<HTMLTextAreaElement>(".diary-textarea");
+                    area?.focus();
+                    area?.setSelectionRange(area.value.length, area.value.length);
+                  }, 0);
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
 
-        {/* 음성 기록 */}
         <div className="form-label" style={{ marginTop: 20 }}>
-          <span>음성 기록</span>
-          <span className="tiny">최대 3분 · 이 기기에만 저장</span>
+          <span>{t("diary.voice")}</span>
+          <span className="tiny">{t("diary.voiceHint")}</span>
         </div>
         <div className="voice-box">
           <button
@@ -500,38 +497,37 @@ export function DiaryScreen() {
             className={`voice-btn ${recording ? "rec" : ""}`}
             onClick={recording ? stopRecording : startRecording}
           >
-            {recording ? "■ 녹음 중지" : "● 음성으로 남기기"}
+            {recording ? t("diary.voiceStop") : t("diary.voiceStart")}
           </button>
           <span className="voice-state">
             {recording
-              ? `${recordSeconds}초 녹음 중…`
-              : typeof window !== "undefined" && typeof window.MediaRecorder === "undefined"
-                ? "이 브라우저는 녹음을 지원하지 않아요 (문자로 남겨주세요)"
-                : "탭해서 말로 남겨보세요"}
+              ? t("diary.voiceRecording", { n: recordSeconds })
+              : voiceSupported
+                ? t("diary.voiceHint2")
+                : t("diary.voiceUnsupported")}
           </span>
         </div>
 
-        {/* 링크 */}
         <div className="form-label" style={{ marginTop: 20 }}>
-          <span>링크 추가</span>
-          <span className="tiny">{links.length}개</span>
+          <span>{t("diary.links")}</span>
+          <span className="tiny">{links.length}</span>
         </div>
         <div className="link-form">
           <input
             value={linkInput}
             onChange={(event) => setLinkInput(event.target.value)}
-            placeholder="https://..."
+            placeholder={t("diary.linkPh")}
             inputMode="url"
-            aria-label="링크 주소"
+            aria-label={t("diary.links")}
           />
           <input
             value={linkLabel}
             onChange={(event) => setLinkLabel(event.target.value)}
-            placeholder="이름 (선택)"
-            aria-label="링크 이름"
+            placeholder={t("diary.linkLabelPh")}
+            aria-label={t("diary.linkLabelPh")}
           />
           <button type="button" className="btn sage-wash" onClick={addLink}>
-            추가
+            {t("diary.linkAdd")}
           </button>
         </div>
         {links.length > 0 ? (
@@ -544,7 +540,7 @@ export function DiaryScreen() {
                 <button
                   type="button"
                   onClick={() => setLinks((prev) => prev.filter((item) => item.id !== link.id))}
-                  aria-label="링크 삭제"
+                  aria-label={t("common.delete")}
                 >
                   ✕
                 </button>
@@ -553,12 +549,13 @@ export function DiaryScreen() {
           </ul>
         ) : null}
 
-        {/* 사진 · 영상 */}
         <div className="form-label" style={{ marginTop: 20 }}>
-          <span>사진 · 영상</span>
+          <span>{t("diary.media")}</span>
           <span className="tiny">
-            {media.filter((item) => item.kind !== "audio").length}/{MAX_MEDIA_PER_ENTRY} · 원본은
-            기기 저장소에 보관
+            {t("diary.mediaHint", {
+              n: media.filter((item) => item.kind !== "audio").length,
+              max: MAX_MEDIA_PER_ENTRY,
+            })}
           </span>
         </div>
         <input
@@ -575,7 +572,7 @@ export function DiaryScreen() {
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
         >
-          {uploading ? "불러오는 중…" : "＋ 사진 · 영상 첨부"}
+          {uploading ? t("diary.attaching") : t("diary.attach")}
         </button>
 
         {media.length > 0 ? (
@@ -589,20 +586,20 @@ export function DiaryScreen() {
         <div className="form-foot">
           <span className="count">{text.length} / 600</span>
           <button className="btn" type="button" onClick={onSave} disabled={saving}>
-            {saving ? "저장 중…" : "마음기록 저장"}
+            {saving ? t("diary.saving") : t("diary.save")}
           </button>
         </div>
       </section>
 
       <div className="section-head">
-        <h2>최근 7일 요약</h2>
+        <h2>{t("diary.week")}</h2>
         <span className="tiny">
-          {mode === "supabase" ? "내 계정에만 저장" : "이 기기에만 저장돼요"}
+          {mode === "supabase" ? t("diary.weekAccount") : t("diary.weekLocal")}
         </span>
       </div>
 
       {week.length > 0 && (
-        <div className="card week" style={{ marginBottom: 10 }} aria-label="이번 주 감정">
+        <div className="card week" style={{ marginBottom: 10 }} aria-label={t("diary.week")}>
           <div className="week-row">
             {week.map((day) => {
               const item = day.mood ? moodById(day.mood) : null;
@@ -611,7 +608,7 @@ export function DiaryScreen() {
                   key={day.key}
                   className={`day ${item ? "has" : ""} ${day.isToday ? "today" : ""}`}
                 >
-                  <div className="d">{day.weekday}</div>
+                  <div className="d">{weekdayShort(day.key, lang)}</div>
                   <div className="m" aria-hidden="true">
                     {item ? item.emoji : "·"}
                   </div>
@@ -623,53 +620,21 @@ export function DiaryScreen() {
         </div>
       )}
 
-      {briefing && briefing.totalEntries > 0 ? (
-        <div className="card briefing">
-          <div className="row">
-            <h3>상담 브리핑 카드</h3>
-            <span className="spacer" />
-            <span className="tiny">{HOST.displayName}이 미리 읽어요</span>
-          </div>
-          <ul>
-            {briefing.lines.map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ul>
-          {briefing.totalEntries >= 3 ? (
-            <Link
-              href="/counseling"
-              className="btn sage-wash"
-              style={{ height: 40, fontSize: 12.5, marginTop: 12, width: "100%" }}
-            >
-              3분 상담 예약하기 · 3,900원부터
-            </Link>
-          ) : (
-            <p className="tiny" style={{ marginTop: 10 }}>
-              기록이 3개 이상 쌓이면 상담 화면에서 요약 카드가 함께 보여요.
-            </p>
-          )}
-        </div>
-      ) : (
-        <div className="empty">
-          <span className="e">🌱</span>
-          아직 이번 주 기록이 없어요.
-          <br />
-          오늘의 마음을 한 줄로 남겨보세요.
-        </div>
-      )}
+      <div className="empty" style={{ marginTop: 4 }}>
+        <span className="e">🌱</span>
+        {week.some((day) => day.mood) ? t("diary.foot") : t("diary.briefingEmpty")}
+      </div>
 
       <div className="section-head">
-        <h2>지난 기록</h2>
-        <span className="tiny">{hydrated ? `${sorted.length}개` : ""}</span>
+        <h2>{t("diary.entries")}</h2>
+        <span className="tiny">{hydrated ? t("diary.count", { n: sorted.length }) : ""}</span>
       </div>
 
       <div className="diary-list">
         {sorted.length === 0 ? (
           <div className="empty">
             <span className="e">📝</span>
-            아직 기록이 없어요.
-            <br />
-            첫 기록은 1분이면 충분해요.
+            {t("diary.entriesEmpty")}
           </div>
         ) : (
           sorted.map((entry) => {
@@ -685,25 +650,23 @@ export function DiaryScreen() {
                   type="button"
                   className={`del ${confirmId === entry.id ? "confirm" : ""}`}
                   onClick={() => onDelete(entry.id)}
-                  aria-label="기록 삭제"
+                  aria-label={t("common.delete")}
                 >
-                  {confirmId === entry.id ? "삭제?" : "✕"}
+                  {confirmId === entry.id ? t("diary.deleteConfirm") : "✕"}
                 </button>
                 <div className="entry-top">
-                  <span className="badge after">
-                    {entry.sessionLabel ?? "오늘의 기록"}
-                  </span>
+                  <span className="badge after">{entry.sessionLabel ?? t("diary.today")}</span>
                   <span className="when">
-                    {fmtDateShort(entry.date)} {hhmm}
+                    {formatDateShort(entry.date, lang)} {hhmm}
                   </span>
                 </div>
                 <div className="moodline">
                   <span className="e" aria-hidden="true">
                     {item.emoji}
                   </span>
-                  {item.label}
+                  {moodLabel(item.id, t)}
                   <span className="tiny" style={{ fontWeight: 500, marginLeft: 4 }}>
-                    마음의 크기 {entry.intensity}/5
+                    {t("month.intensity", { n: entry.intensity })}
                   </span>
                 </div>
                 {entry.text ? <p className="body">{entry.text}</p> : null}
@@ -735,19 +698,33 @@ export function DiaryScreen() {
 
       {sorted.length > 0 && (
         <button type="button" className="clear-all" onClick={onClearAll}>
-          {confirmClear
-            ? "한 번 더 누르면 모두 지워져요"
-            : mode === "supabase"
-              ? "내 마음기록 모두 지우기"
-              : "이 기기의 기록 모두 지우기"}
+          {confirmClear ? t("diary.deleteAllConfirm") : t("diary.deleteAll")}
         </button>
       )}
 
       <p className="tiny" style={{ textAlign: "center", marginTop: 10 }}>
-        기록은 언제든 직접 지울 수 있어요.
+        {t("diary.foot")}
+      </p>
+      <p className="tiny" style={{ textAlign: "center" }}>
+        <Link href="/affirmations" className="link">
+          {t("tab.affirmations")}
+        </Link>
+        {" · "}
+        <Link href="/growth" className="link">
+          {t("tab.growth")}
+        </Link>
       </p>
     </main>
   );
+}
+
+function weekdayShort(key: string, lang: "ko" | "en" | "ja") {
+  const [y, m, d] = key.split("-").map(Number);
+  const date = new Date(y, (m ?? 1) - 1, d ?? 1);
+  const ko = ["일", "월", "화", "수", "목", "금", "토"];
+  const en = ["S", "M", "T", "W", "T", "F", "S"];
+  const ja = ["日", "月", "火", "水", "木", "金", "土"];
+  return lang === "en" ? en[date.getDay()] : lang === "ja" ? ja[date.getDay()] : ko[date.getDay()];
 }
 
 /* ------------------------------ 미리보기 부품 ------------------------------ */
@@ -782,7 +759,7 @@ function MediaPreview({ meta, onRemove }: { meta: DiaryMediaMeta; onRemove: () =
         url ? (
           <audio controls src={url} className="audio-player" />
         ) : (
-          <span className="media-fallback">🎙 {failed ? "재생할 수 없어요" : "불러오는 중…"}</span>
+          <span className="media-fallback">🎙 {failed ? "—" : "…"}</span>
         )
       ) : meta.thumb ? (
         <img src={meta.thumb} alt={meta.name} />
@@ -790,7 +767,7 @@ function MediaPreview({ meta, onRemove }: { meta: DiaryMediaMeta; onRemove: () =
         <span className="media-fallback">🎞 {meta.name}</span>
       )}
       {meta.kind === "video" ? <span className="media-play">▶</span> : null}
-      <button type="button" className="media-del" onClick={onRemove} aria-label="첨부 삭제">
+      <button type="button" className="media-del" onClick={onRemove} aria-label="delete">
         ✕
       </button>
       <span className="media-name">{meta.name}</span>
@@ -828,8 +805,8 @@ function SavedMedia({ meta }: { meta: DiaryMediaMeta }) {
   if (meta.kind === "audio") {
     return (
       <div className="entry-audio">
-        <span className="tiny">🎙 {meta.duration ? `${Math.round(meta.duration)}초` : "음성"}</span>
-        {url ? <audio controls src={url} /> : <span className="tiny">불러오는 중…</span>}
+        <span className="tiny">🎙 {meta.duration ? `${Math.round(meta.duration)}s` : ""}</span>
+        {url ? <audio controls src={url} /> : <span className="tiny">…</span>}
       </div>
     );
   }
@@ -838,7 +815,7 @@ function SavedMedia({ meta }: { meta: DiaryMediaMeta }) {
     <button type="button" className={`saved-media ${meta.kind}`} onClick={() => void open()}>
       {meta.thumb ? <img src={meta.thumb} alt={meta.name} /> : <span>🎞</span>}
       {meta.kind === "video" ? <span className="media-play">▶</span> : null}
-      {opening ? <span className="media-opening">여는 중…</span> : null}
+      {opening ? <span className="media-opening">…</span> : null}
     </button>
   );
 }

@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { LangSwitch } from "@/components/i18n/LangSwitch";
 import { MOODS } from "@/lib/constants";
 import { ENERGY_LABELS } from "@/lib/checkin";
+import { useI18n } from "@/lib/i18n/LangProvider";
+import { moodLabel } from "@/lib/i18n/labels";
 import type { MoodId } from "@/lib/types";
 
 /**
@@ -22,6 +25,7 @@ export function CheckInScreen({
   onClose?: () => void;
   canClose?: boolean;
 }) {
+  const { t, lang } = useI18n();
   const [mood, setMood] = useState<MoodId | null>(initialMood ?? null);
   const [energy, setEnergy] = useState<number>(initialEnergy ?? 3);
   const [error, setError] = useState("");
@@ -30,28 +34,31 @@ export function CheckInScreen({
     <main className="checkin-screen" data-cosmic="true">
       <div className="checkin-stars" aria-hidden="true" />
       <div className="checkin-inner">
+        <div className="checkin-top">
+          <p className="checkin-brand">{t("checkin.brand")}</p>
+          <LangSwitch tone="dark" />
+        </div>
+
         <header className="checkin-head">
-          <p className="checkin-brand">인유 · InYou</p>
           <h1>
-            잠깐, 지금의 나를
+            {t("checkin.title1")}
             <br />
-            먼저 만나볼까요?
+            {t("checkin.title2")}
           </h1>
-          <p className="checkin-sub">
-            기분과 에너지를 고르면, 당신의 내면으로 들어가는 문이 열려요.
-          </p>
+          <p className="checkin-sub">{t("checkin.sub")}</p>
         </header>
 
-        <section className="checkin-block" aria-label="지금의 기분">
+        <section className="checkin-block" aria-label={t("checkin.mood")}>
           <div className="checkin-label">
-            <span>지금의 기분</span>
-            <span className="tiny">가장 가까운 하나</span>
+            <span>{t("checkin.mood")}</span>
+            <span className="tiny">{t("checkin.moodHint")}</span>
           </div>
           <div className="checkin-moods" role="group">
             {MOODS.map((item) => (
               <button
                 key={item.id}
                 type="button"
+                lang={lang}
                 className={`checkin-mood ${mood === item.id ? "on" : ""}`}
                 onClick={() => {
                   setMood(item.id);
@@ -62,16 +69,16 @@ export function CheckInScreen({
                 <span className="e" aria-hidden="true">
                   {item.emoji}
                 </span>
-                <span className="l">{item.label}</span>
+                <span className="l">{moodLabel(item.id, t)}</span>
               </button>
             ))}
           </div>
         </section>
 
-        <section className="checkin-block" aria-label="에너지 레벨">
+        <section className="checkin-block" aria-label={t("checkin.energy")}>
           <div className="checkin-label">
-            <span>에너지 레벨</span>
-            <span className="tiny">{ENERGY_LABELS[energy]}</span>
+            <span>{t("checkin.energy")}</span>
+            <span className="tiny">{t(`energy.${energy}`)}</span>
           </div>
           <div className="checkin-energy">
             <input
@@ -81,7 +88,7 @@ export function CheckInScreen({
               step={1}
               value={energy}
               onChange={(event) => setEnergy(Number(event.target.value))}
-              aria-label="에너지 레벨 1에서 5"
+              aria-label={`${t("checkin.energy")} 1-5`}
             />
             <div className="checkin-energy-dots" aria-hidden="true">
               {[1, 2, 3, 4, 5].map((value) => (
@@ -89,9 +96,9 @@ export function CheckInScreen({
               ))}
             </div>
             <div className="checkin-energy-legend">
-              <span>지침</span>
+              <span>{t("energy.low")}</span>
               <b>{energy} / 5</b>
-              <span>충만</span>
+              <span>{t("energy.high")}</span>
             </div>
           </div>
         </section>
@@ -103,23 +110,21 @@ export function CheckInScreen({
           className="btn checkin-start"
           onClick={() => {
             if (!mood) {
-              setError("지금의 기분을 하나만 골라주세요.");
+              setError(t("checkin.error"));
               return;
             }
             onSubmit(mood, energy);
           }}
         >
-          내면으로 들어가기
+          {t("checkin.start")}
         </button>
 
         {canClose && onClose ? (
           <button type="button" className="checkin-close" onClick={onClose}>
-            나중에 할게요
+            {t("checkin.later")}
           </button>
         ) : (
-          <p className="checkin-foot">
-            기록은 이 기기에만 저장돼요. 언제든 다시 체크인할 수 있어요.
-          </p>
+          <p className="checkin-foot">{t("checkin.foot")}</p>
         )}
       </div>
     </main>

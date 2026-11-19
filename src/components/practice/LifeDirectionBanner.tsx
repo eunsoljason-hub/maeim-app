@@ -1,68 +1,73 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n/LangProvider";
 
 /**
  * 화면 맨 위에 고정되는 "삶의 방향" 배너.
  * 사용자가 원하는 삶의 방향이나 핵심 문장을 직접 적어 두고, 어느 화면에서든
  * 다시 보며 하루의 기준으로 삼는다. localStorage에 저장된다.
+ * 문장은 위젯 스튜디오와 공유된다.
  */
 export const DIRECTION_KEY = "maeum.direction.v1";
-export const DEFAULT_DIRECTION =
-  "나는 나만의 속도로, 사랑하는 사람들과 오래 웃으며 살아갑니다.";
 
 interface Direction {
   text: string;
   updatedAt: string;
 }
 
-export function loadDirection(): Direction {
-  if (typeof window === "undefined") {
-    return { text: DEFAULT_DIRECTION, updatedAt: "" };
-  }
+export function loadDirectionText(): string {
+  if (typeof window === "undefined") return "";
   try {
     const raw = window.localStorage.getItem(DIRECTION_KEY);
-    if (!raw) return { text: DEFAULT_DIRECTION, updatedAt: "" };
+    if (!raw) return "";
     const parsed = JSON.parse(raw) as Partial<Direction>;
-    if (typeof parsed.text === "string" && parsed.text.trim()) {
-      return { text: parsed.text.trim(), updatedAt: String(parsed.updatedAt ?? "") };
-    }
-    return { text: DEFAULT_DIRECTION, updatedAt: "" };
+    return typeof parsed.text === "string" ? parsed.text.trim() : "";
   } catch {
-    return { text: DEFAULT_DIRECTION, updatedAt: "" };
+    return "";
+  }
+}
+
+export function saveDirectionText(text: string) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(
+      DIRECTION_KEY,
+      JSON.stringify({ text: text.trim(), updatedAt: new Date().toISOString() }),
+    );
+  } catch {
+    /* ignore */
   }
 }
 
 export function LifeDirectionBanner({ compact = false }: { compact?: boolean }) {
-  const [text, setText] = useState(DEFAULT_DIRECTION);
-  const [draft, setDraft] = useState(DEFAULT_DIRECTION);
+  const { t } = useI18n();
+  const [text, setText] = useState("");
+  const [draft, setDraft] = useState("");
   const [editing, setEditing] = useState(false);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const saved = loadDirection();
-    setText(saved.text);
-    setDraft(saved.text);
+    const saved = loadDirectionText();
+    setText(saved);
+    setDraft(saved || t("direction.default"));
     setReady(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const save = () => {
-    const value = draft.trim() || DEFAULT_DIRECTION;
+    const value = draft.trim() || t("direction.default");
     setText(value);
     setDraft(value);
     setEditing(false);
-    try {
-      window.localStorage.setItem(
-        DIRECTION_KEY,
-        JSON.stringify({ text: value, updatedAt: new Date().toISOString() }),
-      );
-    } catch {
-      /* 저장 실패해도 표시는 유지한다 */
-    }
+    saveDirectionText(value);
   };
 
   return (
-    <section className={`direction-banner ${compact ? "compact" : ""}`} aria-label="나의 삶의 방향">
+    <section
+      className={`direction-banner ${compact ? "compact" : ""}`}
+      aria-label={t("direction.label")}
+    >
       <div className="direction-mark" aria-hidden="true">
         <svg viewBox="0 0 24 24">
           <path d="M12 3.5 14.6 9l6 .9-4.3 4.2 1 6-5.3-2.8L6.7 20l1-6L3.4 9.9 9.4 9z" />
@@ -75,30 +80,30 @@ export function LifeDirectionBanner({ compact = false }: { compact?: boolean }) 
             onChange={(event) => setDraft(event.target.value.slice(0, 160))}
             rows={2}
             maxLength={160}
-            placeholder="내가 향하는 삶의 방향, 오늘 지키고 싶은 한 문장"
-            aria-label="삶의 방향 문장"
+            placeholder={t("direction.ph")}
+            aria-label={t("direction.label")}
             autoFocus
           />
           <div className="direction-edit-actions">
             <button type="button" className="direction-save" onClick={save}>
-              저장
+              {t("direction.save")}
             </button>
             <button
               type="button"
               className="direction-cancel"
               onClick={() => {
-                setDraft(text);
+                setDraft(text || t("direction.default"));
                 setEditing(false);
               }}
             >
-              취소
+              {t("direction.cancel")}
             </button>
           </div>
         </div>
       ) : (
         <div className="direction-body">
-          <span className="direction-label">나의 삶의 방향</span>
-          <p className="direction-text">{ready ? text : DEFAULT_DIRECTION}</p>
+          <span className="direction-label">{t("direction.label")}</span>
+          <p className="direction-text">{ready ? text || t("direction.default") : t("direction.default")}</p>
         </div>
       )}
       {!editing ? (
@@ -106,7 +111,7 @@ export function LifeDirectionBanner({ compact = false }: { compact?: boolean }) 
           type="button"
           className="direction-edit-btn"
           onClick={() => setEditing(true)}
-          aria-label="삶의 방향 수정"
+          aria-label={t("direction.edit")}
         >
           ✎
         </button>

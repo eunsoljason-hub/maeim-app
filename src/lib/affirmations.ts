@@ -17,7 +17,8 @@ function isItem(value: unknown): value is Affirmation {
   return (
     typeof item.id === "string" &&
     typeof item.ko === "string" &&
-    typeof item.en === "string"
+    typeof item.en === "string" &&
+    (typeof item.ja === "string" || item.ja === undefined)
   );
 }
 
@@ -42,7 +43,10 @@ export function loadSessions(): AffirmationSession[] {
     if (!Array.isArray(parsed) || parsed.length === 0) return clone(DEFAULT_SESSIONS);
     const sessions = parsed.filter(isSession).map((session) => ({
       ...session,
-      items: session.items.filter(isItem),
+      items: session.items.filter(isItem).map((item) => ({
+        ...item,
+        ja: typeof item.ja === "string" ? item.ja : "",
+      })),
       builtin: session.builtin !== false,
       emoji: typeof session.emoji === "string" ? session.emoji : "✶",
       description: typeof session.description === "string" ? session.description : "",
@@ -82,7 +86,8 @@ export function makeSession(title: string, emoji: string, description: string): 
   return {
     id: `custom-${newLocalId("s")}`,
     title: title.trim().slice(0, 40) || "나의 확언",
-    titleEn: "My Affirmations",
+    titleEn: title.trim().slice(0, 40) || "My Affirmations",
+    titleJa: title.trim().slice(0, 40) || "私の言葉",
     emoji: emoji || "✶",
     description: description.trim().slice(0, 80),
     builtin: false,
@@ -90,11 +95,12 @@ export function makeSession(title: string, emoji: string, description: string): 
   };
 }
 
-export function makeAffirmation(ko: string, en: string): Affirmation {
+export function makeAffirmation(ko: string, en: string, ja = ""): Affirmation {
   return {
     id: newLocalId("aff"),
     ko: ko.trim(),
     en: en.trim(),
+    ja: ja.trim(),
   };
 }
 

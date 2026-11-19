@@ -12,6 +12,8 @@ import { AmbientSound, SOUND_OPTIONS, type SoundId } from "@/lib/audio/ambient";
 import { COURSES, THEMES, courseById } from "@/lib/constants";
 import { BGM_TRACKS, bgmById } from "@/lib/data/bgm";
 import { fmtClock } from "@/lib/date";
+import { useI18n } from "@/lib/i18n/LangProvider";
+import { courseText } from "@/lib/i18n/courses";
 import { loadStoredPrefs, readJson, removeKey, writeJson } from "@/lib/storage";
 import type { ThemeId } from "@/lib/types";
 
@@ -23,6 +25,8 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
   const course = courseById(courseId);
   const router = useRouter();
   const { setPrefs, recordPlay } = useApp();
+  const { t, lang } = useI18n();
+  const text = courseText(course, lang);
   const reducedMotion = usePrefersReducedMotion();
   const wakeLock = useWakeLock();
   const requestWakeLock = wakeLock.request;
@@ -35,7 +39,7 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
   const [remaining, setRemaining] = useState(course.minutes * 60);
   const [running, setRunning] = useState(false);
   const [finished, setFinished] = useState(false);
-  const [phase, setPhase] = useState("시작을 기다리는 중");
+  const [phase, setPhase] = useState(t("player.waiting"));
   const [beat, setBeat] = useState("");
   const [infoOpen, setInfoOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
@@ -142,7 +146,7 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
     setRunning(false);
     setFinished(true);
     setRemaining(0);
-    setPhase("고마워요");
+    setPhase(t("player.still"));
     setBeat("");
     lastBeatRef.current = "";
     void releaseWakeLock();
@@ -155,12 +159,12 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
         from: "player",
         course: course.id,
         session: course.category,
-        label: course.title,
+        label: text.title,
         minutes: String(minutes),
       });
       router.push(`/diary?${params.toString()}`);
     }, 1400);
-  }, [course.category, course.id, course.title, minutes, positionKey, recordPlay, releaseWakeLock, router, stopAudio]);
+  }, [course.category, course.id, text.title, minutes, positionKey, recordPlay, releaseWakeLock, router, stopAudio, t]);
 
   /* Never navigate away after the user has already left the player. */
   useEffect(() => {
@@ -188,25 +192,25 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
       }
 
       const elapsed = total - left;
-      const t = elapsed % cycle;
+      const phaseT = elapsed % cycle;
       let label = "";
       let scale = 0.84;
       let local = 0;
       let phaseDuration = breath.inhale;
 
-      if (t < breath.inhale) {
-        label = "들이쉬세요";
-        local = t;
+      if (phaseT < breath.inhale) {
+        label = t("player.inhale");
+        local = phaseT;
         phaseDuration = breath.inhale;
         scale = 0.84 + 0.32 * smooth(local / phaseDuration);
-      } else if (t < breath.inhale + breath.hold) {
-        label = "잠시 머물러요";
-        local = t - breath.inhale;
+      } else if (phaseT < breath.inhale + breath.hold) {
+        label = t("player.hold");
+        local = phaseT - breath.inhale;
         phaseDuration = breath.hold;
         scale = 1.16;
       } else {
-        label = "천천히 내쉬세요";
-        local = t - breath.inhale - breath.hold;
+        label = t("player.exhale");
+        local = phaseT - breath.inhale - breath.hold;
         phaseDuration = breath.exhale;
         scale = 1.16 - 0.32 * smooth(local / phaseDuration);
       }
@@ -248,16 +252,16 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
     savePosition(left);
     void releaseWakeLock();
     stopAudio();
-    setPhase("일시정지");
-    setBeat("탭해서 이어서");
-    lastBeatRef.current = "탭해서 이어서";
+    setPhase(t("player.paused"));
+    setBeat(t("player.tapResume"));
+    lastBeatRef.current = t("player.tapResume");
   };
 
   const reset = () => {
     setRunning(false);
     setFinished(false);
     setRemaining(minutes * 60);
-    setPhase("시작을 기다리는 중");
+    setPhase(t("player.waiting"));
     setBeat("");
     lastBeatRef.current = "";
     setResumeAt(null);
@@ -273,7 +277,7 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
     setRemaining(next * 60);
     setRunning(false);
     setFinished(false);
-    setPhase("시작을 기다리는 중");
+    setPhase(t("player.waiting"));
     setBeat("");
     setResumeAt(null);
     stopAudio();
@@ -312,12 +316,11 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
   const progress = total > 0 ? elapsed / total : 0;
   const themeMeta = THEMES[theme];
 
-  const guideStep = course.guide
-    ? [...course.guide.steps].reverse().find((step) => step.at <= elapsed) ?? course.guide.steps[0]
+  const localizedSteps = text.guideSteps ?? [];
+  const guideStep = localizedSteps.length
+    ? [...localizedSteps].reverse().find((step) => step.at <= elapsed) ?? localizedSteps[0]
     : null;
-  const nextGuideStep = course.guide
-    ? course.guide.steps.find((step) => step.at > elapsed) ?? null
-    : null;
+  const nextGuideStep = localizedSteps.find((step) => step.at > elapsed) ?? null;
 
   return (
     <main className="player-page" data-theme={theme}>
@@ -328,23 +331,23 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
           <Link
             href={course.category === "visualization" ? "/visualization" : "/meditation"}
             className="icon-btn player-icon"
-            aria-label="코스 목록으로 돌아가기"
+            aria-label={t("common.back")}
           >
             ‹
           </Link>
           <div className="titles">
             <p className="player-kicker">
-              {course.category === "visualization" ? "시각화 · " : "명상 · "}
-              {course.tag}
+              {t(course.category === "visualization" ? "tab.visualization" : "tab.meditation")} ·{" "}
+              {text.tag}
             </p>
-            <h2>{course.title}</h2>
+            <h2>{text.title}</h2>
           </div>
           <div className="player-head-actions">
             {course.guide ? (
               <button
                 className="icon-btn player-icon"
                 onClick={() => setGuideOpen(true)}
-                aria-label="가이드 스크립트"
+                aria-label={t("player.guide")}
               >
                 ☰
               </button>
@@ -352,7 +355,7 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
             <button
               className="icon-btn player-icon"
               onClick={() => setInfoOpen(true)}
-              aria-label="코스 안내"
+              aria-label={t("player.info")}
             >
               i
             </button>
@@ -390,32 +393,35 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
           {fmtClock(remaining)}
         </div>
         <p className="timer-sub">
-          {minutes}분 · {themeMeta.label}
-          {wakeLock.active ? " · 화면 켜짐 유지" : ""}
+          {t("common.minutes", { n: minutes })} · {t(`theme.${theme}`)}
+          {wakeLock.active ? ` · ${t("player.wake")}` : ""}
         </p>
 
         {course.guide && guideStep ? (
           <button type="button" className="guide-now" onClick={() => setGuideOpen(true)}>
             <span className="guide-now-kicker">
-              {running || elapsed > 0 ? "지금 가이드" : "이 코스의 가이드"}
+              {running || elapsed > 0 ? t("player.guideNow") : t("player.guideIntro")}
             </span>
             <span className="guide-now-line">{guideStep.line}</span>
             <span className="guide-now-next">
               {nextGuideStep
-                ? `다음 · ${nextGuideStep.label} (${fmtClock(nextGuideStep.at - elapsed)} 후)`
-                : "마지막 단계예요"}
+                ? t("player.guideNext", {
+                    label: nextGuideStep.label,
+                    time: fmtClock(nextGuideStep.at - elapsed),
+                  })
+                : t("player.guideLast")}
             </span>
           </button>
         ) : null}
 
         <div className="controls">
-          <button className="ctrl" onClick={reset} aria-label="처음부터">
+          <button className="ctrl" onClick={reset} aria-label={t("common.reset")}>
             ↺
           </button>
           <button
             className="ctrl main"
             onClick={running ? pause : start}
-            aria-label={running ? "일시정지" : "재생"}
+            aria-label={running ? t("common.pause") : t("common.start")}
           >
             {running ? "❚❚" : finished ? "↻" : "▶"}
           </button>
@@ -424,23 +430,23 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
             onClick={() =>
               router.push(
                 `/diary?moment=${finished ? "after" : "before"}&from=player&session=${course.category}&label=${encodeURIComponent(
-                  course.title,
+                  text.title,
                 )}`,
               )
             }
-            aria-label="마음기록 쓰기"
+            aria-label={t("diary.title")}
           >
             ✎
           </button>
         </div>
         <p className="ctrl-note">
           {finished
-            ? "마음을 기록하러 이동하고 있어요…"
+            ? t("player.finishedNote")
             : running
               ? course.guide
-                ? "가이드 문장을 따라 천천히 장면을 그려보세요."
-                : "어깨를 내리고, 숨이 들어오는 곳에 집중해 보세요."
-              : "세션이 끝나면 마음기록으로 이어져요"}
+                ? t("player.runningGuide")
+                : t("player.runningNote")
+              : t("player.hintNote")}
         </p>
 
         {resumeAt !== null && !running && !finished && (
@@ -458,13 +464,13 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
                 startAudio();
               }}
             >
-              이어서 듣기 · {fmtClock(resumeAt)}
+              {t("player.resume", { time: fmtClock(resumeAt) })}
             </button>
           </div>
         )}
 
         <div className="player-panel">
-          <p className="panel-label">시간</p>
+          <p className="panel-label">{t("player.time")}</p>
           <div className="chips">
             {minuteOptions.map((value) => (
               <button
@@ -473,11 +479,11 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
                 onClick={() => changeMinutes(value)}
                 aria-pressed={minutes === value}
               >
-                {value}분
+                {t("common.minutes", { n: value })}
               </button>
             ))}
           </div>
-          <p className="panel-label">배경</p>
+          <p className="panel-label">{t("player.background")}</p>
           <div className="chips">
             {(Object.keys(THEMES) as ThemeId[]).map((id) => (
               <button
@@ -486,11 +492,11 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
                 onClick={() => changeTheme(id)}
                 aria-pressed={theme === id}
               >
-                {THEMES[id].label}
+                {t(`theme.${id}`)}
               </button>
             ))}
           </div>
-          <p className="panel-label">배경음</p>
+          <p className="panel-label">{t("player.sound")}</p>
           <div className="chips">
             {SOUND_OPTIONS.map((option) => (
               <button
@@ -499,7 +505,7 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
                 onClick={() => changeSound(option.id)}
                 aria-pressed={!bgmId && sound === option.id}
               >
-                {option.label}
+                {t(`sound.${option.id}`)}
               </button>
             ))}
             <button
@@ -507,22 +513,28 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
               onClick={() => setBgmOpen(true)}
               aria-pressed={Boolean(bgmId)}
             >
-              음원 10선
+              {t("player.tracks")}
             </button>
           </div>
           <p className="panel-note">
             {bgm
-              ? `${bgm.title} · ${bgm.artist} · ${bgm.license}`
+              ? t("player.noteBgm", { title: bgm.title, artist: bgm.artist, license: bgm.license })
               : course.audioUrl
-                ? "가이드 음성과 배경음이 함께 재생돼요."
-                : "합성 앰비언스는 기기에서 만들어져요. 저작권 무료 음원 10선에서 골라도 돼요."}
+                ? t("player.noteNarration")
+                : t("player.noteSynth")}
           </p>
           <div className="player-hint">
             <span>
-              {course.breath.inhale}-{course.breath.hold}-{course.breath.exhale} 호흡
+              {t("player.breathing", {
+                inhale: course.breath.inhale,
+                hold: course.breath.hold,
+                exhale: course.breath.exhale,
+              })}
             </span>
-            <span>{wakeLock.supported ? "화면 꺼짐 방지" : "화면 유지 미지원"}</span>
-            {course.guide ? <span>가이드 {course.guide.steps.length}단계</span> : null}
+            <span>{wakeLock.supported ? t("player.wake") : t("player.wakeUnsupported")}</span>
+            {course.guide ? (
+              <span>{t("player.guideCount", { n: course.guide.steps.length })}</span>
+            ) : null}
           </div>
         </div>
       </div>
@@ -531,45 +543,43 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
       {bgm ? <audio key={bgm.id} ref={bgmRef} src={bgm.audioUrl} loop preload="none" /> : null}
 
       <Sheet open={infoOpen} onClose={() => setInfoOpen(false)} labelledBy="player-info-title">
-        <h3 id="player-info-title">{course.title}</h3>
-        <p className="lead">{course.description}</p>
+        <h3 id="player-info-title">{text.title}</h3>
+        <p className="lead">{text.description}</p>
         <div className="sum">
           <div className="sum-row">
-            <span>길이</span>
-            <b>{minutes}분</b>
+            <span>{t("player.length")}</span>
+            <b>{t("common.minutes", { n: minutes })}</b>
           </div>
           <div className="sum-row">
-            <span>테마</span>
-            <b>{themeMeta.label}</b>
+            <span>{t("player.theme")}</span>
+            <b>{t(`theme.${theme}`)}</b>
           </div>
           <div className="sum-row">
-            <span>호흡</span>
+            <span>{t("player.breath")}</span>
             <b>
-              {course.breath.inhale}초 · {course.breath.hold}초 · {course.breath.exhale}초
+              {course.breath.inhale}s · {course.breath.hold}s · {course.breath.exhale}s
             </b>
           </div>
           {course.guide ? (
             <div className="sum-row">
-              <span>가이드</span>
-              <b>{course.guide.steps.length}단계</b>
+              <span>{t("player.guide")}</span>
+              <b>{t("player.guideCount", { n: course.guide.steps.length })}</b>
             </div>
           ) : null}
         </div>
-        <p className="fine">
-          명상 콘텐츠는 의료 행위가 아닙니다. 몸이 불편하면 언제든 멈추고 편히 쉬어 주세요.
-        </p>
+        <p className="fine">{t("player.fine")}</p>
         <button className="btn block" onClick={() => setInfoOpen(false)}>
-          닫기
+          {t("common.close")}
         </button>
       </Sheet>
 
       {course.guide ? (
         <Sheet open={guideOpen} onClose={() => setGuideOpen(false)} labelledBy="guide-title">
-          <h3 id="guide-title">{course.title} 가이드</h3>
-          <p className="lead">{course.guide.intent}</p>
+          <h3 id="guide-title">{t("player.guideTitle", { title: text.title })}</h3>
+          <p className="lead">{text.guideIntent}</p>
           <p className="guide-narrator">{course.guide.narrator}</p>
           <ol className="guide-steps">
-            {course.guide.steps.map((step, index) => {
+            {(text.guideSteps ?? []).map((step, index) => {
               const active = guideStep?.at === step.at && (running || elapsed > 0);
               return (
                 <li key={`${step.at}-${index}`} className={active ? "on" : ""}>
@@ -584,39 +594,36 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
           </ol>
           <div className="guide-audio-slot">
             <div>
-              <b>가이드 음성 슬롯</b>
+              <b>{t("player.audioSlot")}</b>
               <p>
                 {course.audioUrl
-                  ? "녹음된 가이드 음성이 연결되어 있어요."
-                  : `아직 비어 있어요. /audio/guide/${course.id}.mp3 를 넣으면 같은 스크립트가 나레이션으로 재생돼요.`}
+                  ? t("player.audioSlotOn")
+                  : t("player.audioSlotOff", { id: course.id })}
               </p>
             </div>
             <span className={`slot-badge ${course.audioUrl ? "on" : ""}`}>
-              {course.audioUrl ? "연결됨" : "준비 중"}
+              {course.audioUrl ? t("player.slotReady") : t("player.slotPending")}
             </span>
           </div>
           <button className="btn block" onClick={() => setGuideOpen(false)}>
-            닫기
+            {t("common.close")}
           </button>
         </Sheet>
       ) : null}
 
       <Sheet open={bgmOpen} onClose={() => setBgmOpen(false)} labelledBy="bgm-title">
-        <h3 id="bgm-title">저작권 무료 배경음 10선</h3>
-        <p className="lead">
-          모두 상업적 사용이 가능한 음원이에요. 출처 표기는 필요 없지만, 마음이 닿으면
-          아티스트 이름을 남겨 주세요.
-        </p>
+        <h3 id="bgm-title">{t("player.bgmTitle")}</h3>
+        <p className="lead">{t("player.bgmLead")}</p>
         <div className="bgm-list">
           <button
             type="button"
             className={`bgm-item ${!bgmId ? "on" : ""}`}
             onClick={() => changeBgm(null)}
           >
-            <span className="bgm-theme">기본</span>
+            <span className="bgm-theme">{t("player.bgmDefault")}</span>
             <span className="bgm-body">
-              <b>합성 앰비언스 / 무음</b>
-              <span>빗소리 · 파도 · 장작불을 기기에서 만들어요</span>
+              <b>{t("player.bgmDefault")}</b>
+              <span>{t("player.bgmDefaultDesc")}</span>
             </span>
           </button>
           {BGM_TRACKS.map((track) => (
@@ -637,12 +644,9 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
             </button>
           ))}
         </div>
-        <p className="fine">
-          음원은 Pixabay 페이지에서 내려받아 오프라인 배포에 쓸 수 있어요. 파일을 단독으로
-          재판매·재배포하는 것만 금지됩니다.
-        </p>
+        <p className="fine">{t("player.bgmFine")}</p>
         <button className="btn block" onClick={() => setBgmOpen(false)}>
-          닫기
+          {t("common.close")}
         </button>
       </Sheet>
     </main>

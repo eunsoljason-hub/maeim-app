@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useApp } from "@/components/providers/AppProvider";
 import { Sheet } from "@/components/ui/Sheet";
+import { LifeDirectionBanner } from "@/components/practice/LifeDirectionBanner";
+import { LangSwitch } from "@/components/i18n/LangSwitch";
 import {
   loadSessions,
   makeAffirmation,
@@ -15,24 +17,22 @@ import {
 } from "@/lib/affirmations";
 import {
   DEFAULT_SESSIONS,
+  affirmationTextFor,
+  sessionDescriptionFor,
+  sessionTitleFor,
   type Affirmation,
   type AffirmationSession,
 } from "@/lib/data/affirmations";
-import { LifeDirectionBanner } from "@/components/practice/LifeDirectionBanner";
+import { useI18n } from "@/lib/i18n/LangProvider";
 
-type ScriptMode = "both" | "ko" | "en";
-
-const SCRIPT_LABEL: Record<ScriptMode, string> = {
-  both: "한·영 함께",
-  ko: "한국어만",
-  en: "English only",
-};
+type ScriptMode = "both" | "ko" | "en" | "ja";
 
 const AUTO_MS = 9000;
 
 export function AffirmationsScreen() {
   const router = useRouter();
   const { toast, recordPlay } = useApp();
+  const { t, lang } = useI18n();
 
   const [sessions, setSessions] = useState<AffirmationSession[]>([]);
   const [ready, setReady] = useState(false);
@@ -46,6 +46,7 @@ export function AffirmationsScreen() {
   >(null);
   const [editorKo, setEditorKo] = useState("");
   const [editorEn, setEditorEn] = useState("");
+  const [editorJa, setEditorJa] = useState("");
   const [sessionEditor, setSessionEditor] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newEmoji, setNewEmoji] = useState("✶");
@@ -54,7 +55,6 @@ export function AffirmationsScreen() {
   const [confirmItemDelete, setConfirmItemDelete] = useState<string | null>(null);
   const touchX = useRef<number | null>(null);
   const openedAtRef = useRef<number>(Date.now());
-  const readRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     setSessions(loadSessions());
@@ -64,7 +64,7 @@ export function AffirmationsScreen() {
   const persist = (next: AffirmationSession[]) => {
     setSessions(next);
     if (!saveSessions(next)) {
-      toast("저장 공간이 부족해요. 사진·영상 첨부를 줄인 뒤 다시 시도해 주세요.");
+      toast(t("aff.session.storageFull"));
     }
   };
 
@@ -119,12 +119,14 @@ export function AffirmationsScreen() {
   const openAdd = () => {
     setEditorKo("");
     setEditorEn("");
+    setEditorJa("");
     setItemEditor({ mode: "add" });
   };
 
   const openEdit = (item: Affirmation, itemIndex: number) => {
     setEditorKo(item.ko);
     setEditorEn(item.en);
+    setEditorJa(item.ja ?? "");
     setItemEditor({ mode: "edit", item, index: itemIndex });
   };
 
@@ -132,17 +134,23 @@ export function AffirmationsScreen() {
     if (!session || !itemEditor) return;
     const ko = editorKo.trim();
     const en = editorEn.trim();
-    if (!ko && !en) {
-      toast("문장을 하나 이상 적어주세요");
+    const ja = editorJa.trim();
+    if (!ko && !en && !ja) {
+      toast(t("aff.editor.needOne"));
       return;
     }
     let nextItems: Affirmation[];
     if (itemEditor.mode === "add") {
-      nextItems = [...items, makeAffirmation(ko || en, en)];
+      nextItems = [...items, makeAffirmation(ko || en || ja, en || ko || ja, ja || en || ko)];
     } else {
       nextItems = items.map((item) =>
         item.id === itemEditor.item.id
-          ? { ...item, ko: ko || item.ko, en: en || item.en }
+          ? {
+              ...item,
+              ko: ko || item.ko,
+              en: en || item.en,
+              ja: ja || item.ja,
+            }
           : item,
       );
     }
@@ -152,7 +160,7 @@ export function AffirmationsScreen() {
       ),
     );
     setItemEditor(null);
-    toast(itemEditor.mode === "add" ? "문장을 추가했어요" : "문장을 고쳤어요");
+    toast(itemEditor.mode === "add" ? t("aff.toast.added") : t("aff.toast.edited"));
   };
 
   const deleteItem = (item: Affirmation) => {
@@ -169,12 +177,12 @@ export function AffirmationsScreen() {
       ),
     );
     setConfirmItemDelete(null);
-    toast("문장을 지웠어요");
+    toast(t("aff.toast.deleted"));
   };
 
   const createSession = () => {
     if (!newTitle.trim()) {
-      toast("세션 제목을 적어주세요");
+      toast(t("aff.session.needTitle"));
       return;
     }
     const made = makeSession(newTitle, newEmoji, newDesc);
@@ -184,12 +192,12 @@ export function AffirmationsScreen() {
     setNewTitle("");
     setNewEmoji("✶");
     setNewDesc("");
-    toast("새 확언 세션을 만들었어요. 문장을 추가해 보세요.");
+    toast(t("aff.session.created"));
   };
 
   const renameSession = () => {
     if (!session || session.builtin) return;
-    const value = window.prompt("세션 제목을 적어주세요", session.title);
+    const value = window.prompt(t("aff.session.name"), sessionTitleFor(session, lang));
     if (value === null) return;
     const title = value.trim().slice(0, 40);
     if (!title) return;
@@ -211,7 +219,7 @@ export function AffirmationsScreen() {
     persist(next);
     setConfirmDelete(null);
     if (fallback) setActiveId(fallback.id);
-    toast("세션을 지웠어요");
+    toast(t("aff.session.deleted"));
   };
 
   const finish = () => {
@@ -220,7 +228,7 @@ export function AffirmationsScreen() {
     const params = new URLSearchParams({
       moment: "after",
       from: "affirmations",
-      session: session?.title ?? "확언",
+      session: session ? sessionTitleFor(session, lang) : t("aff.title"),
       count: String(items.length),
     });
     router.push(`/diary?${params.toString()}`);
@@ -234,22 +242,36 @@ export function AffirmationsScreen() {
     );
   }
 
+  const scriptLabel: Record<ScriptMode, string> = {
+    both: t("aff.both"),
+    ko: t("aff.koOnly"),
+    en: t("aff.enOnly"),
+    ja: t("aff.jaOnly"),
+  };
+
+  const cardText = (item: Affirmation) => {
+    if (script === "ko") return { ko: item.ko, en: "", ja: "" };
+    if (script === "en") return { ko: "", en: item.en, ja: "" };
+    if (script === "ja") return { ko: "", en: "", ja: item.ja };
+    return { ko: item.ko, en: item.en, ja: item.ja };
+  };
+
   return (
     <main className="page aff-page">
       <LifeDirectionBanner />
       <header className="view-head">
         <div>
-          <p className="eyebrow">말로 새기는 시간</p>
-          <h1>확언</h1>
+          <p className="eyebrow">{t("aff.eyebrow")}</p>
+          <h1>{t("aff.title")}</h1>
         </div>
-        <span className="tag">{total}문장</span>
+        <div className="view-head-right">
+          <LangSwitch />
+          <span className="tag">{t("aff.count", { n: total })}</span>
+        </div>
       </header>
-      <p className="view-lead">
-        소리 내어 읽어도, 마음속으로 읽어도 좋아요. 30문장이 끝나면 오늘의 마음기록으로
-        이어집니다.
-      </p>
+      <p className="view-lead">{t("aff.lead")}</p>
 
-      <div className="aff-sessions" role="tablist" aria-label="확언 세션">
+      <div className="aff-sessions" role="tablist" aria-label={t("aff.title")}>
         {sessions.map((entry) => (
           <button
             key={entry.id}
@@ -263,7 +285,7 @@ export function AffirmationsScreen() {
               {entry.emoji}
             </span>
             <span className="t">
-              {entry.title}
+              {sessionTitleFor(entry, lang)}
               <em>{entry.items.length}</em>
             </span>
           </button>
@@ -272,60 +294,62 @@ export function AffirmationsScreen() {
           <span className="e" aria-hidden="true">
             ＋
           </span>
-          <span className="t">새 세션</span>
+          <span className="t">{t("aff.newSession")}</span>
         </button>
       </div>
 
       <div className="aff-desc">
         <b>
-          {session.emoji} {session.title}
+          {session.emoji} {sessionTitleFor(session, lang)}
         </b>
-        <span>{session.description || (session.builtin ? "" : "내가 만든 확언 세션")}</span>
+        <span>{sessionDescriptionFor(session, lang) || t("aff.mySession")}</span>
         {!session.builtin ? (
           <span className="aff-owner-actions">
             <button type="button" onClick={renameSession}>
-              이름 바꾸기
+              {t("aff.rename")}
             </button>
             <button
               type="button"
               className={confirmDelete === session.id ? "danger" : ""}
               onClick={deleteSession}
             >
-              {confirmDelete === session.id ? "정말 지울까요?" : "세션 지우기"}
+              {confirmDelete === session.id ? t("aff.confirmDelete") : t("aff.deleteSession")}
             </button>
           </span>
         ) : null}
       </div>
 
       <div className="aff-toolbar">
-        <div className="seg inline" role="group" aria-label="보기 방식">
+        <div className="seg inline" role="group" aria-label={t("aff.card")}>
           <button
             type="button"
             className={view === "card" ? "on" : ""}
             onClick={() => setView("card")}
           >
-            카드
+            {t("aff.card")}
           </button>
           <button
             type="button"
             className={view === "list" ? "on" : ""}
             onClick={() => setView("list")}
           >
-            목록
+            {t("aff.list")}
           </button>
         </div>
         <button
           type="button"
           className="aff-tool"
           onClick={() =>
-            setScript((prev) => (prev === "both" ? "ko" : prev === "ko" ? "en" : "both"))
+            setScript((prev) =>
+              prev === "both" ? "ko" : prev === "ko" ? "en" : prev === "en" ? "ja" : "both",
+            )
           }
         >
-          {SCRIPT_LABEL[script]}
+          {scriptLabel[script]}
         </button>
         {view === "card" ? (
           <button type="button" className="aff-tool" onClick={() => setAuto((prev) => !prev)}>
-            {auto ? "자동 넘김 중" : "자동 넘김"}
+            {auto ? t("aff.autoOn") : t("aff.auto")}
           </button>
         ) : null}
       </div>
@@ -333,11 +357,11 @@ export function AffirmationsScreen() {
       {items.length === 0 ? (
         <div className="empty">
           <span className="e">{session.emoji}</span>
-          아직 문장이 없어요.
+          {t("aff.empty")}
           <br />
-          첫 문장을 직접 적어보세요.
+          {t("aff.emptyHint")}
           <button type="button" className="btn sage-wash" onClick={openAdd} style={{ marginTop: 12 }}>
-            ＋ 문장 추가
+            ＋ {t("aff.addSentence")}
           </button>
         </div>
       ) : view === "card" ? (
@@ -349,7 +373,8 @@ export function AffirmationsScreen() {
             }}
             onTouchEnd={(event) => {
               if (touchX.current === null) return;
-              const delta = (event.changedTouches[0]?.clientX ?? touchX.current) - touchX.current;
+              const delta =
+                (event.changedTouches[0]?.clientX ?? touchX.current) - touchX.current;
               touchX.current = null;
               if (Math.abs(delta) > 45) go(delta < 0 ? 1 : -1);
             }}
@@ -359,23 +384,42 @@ export function AffirmationsScreen() {
               <span className="aff-count">
                 {index + 1} <i>/ {items.length}</i>
               </span>
-              <span className="aff-session-name">{session.title}</span>
+              <span className="aff-session-name">{sessionTitleFor(session, lang)}</span>
             </div>
             <div className="aff-text">
-              {script !== "en" ? <p className="ko">{current?.ko}</p> : null}
-              {script !== "ko" && current?.en ? <p className="en">{current.en}</p> : null}
+              {current ? (
+                <>
+                  {cardText(current).ko ? <p className="ko">{cardText(current).ko}</p> : null}
+                  {cardText(current).en ? <p className="en">{cardText(current).en}</p> : null}
+                  {cardText(current).ja ? <p className="en ja">{cardText(current).ja}</p> : null}
+                </>
+              ) : null}
             </div>
             <div className="aff-progress" aria-hidden="true">
               <span style={{ width: `${((index + 1) / items.length) * 100}%` }} />
             </div>
             <div className="aff-nav">
-              <button type="button" className="aff-arrow" onClick={() => go(-1)} aria-label="이전 문장">
+              <button
+                type="button"
+                className="aff-arrow"
+                onClick={() => go(-1)}
+                aria-label={t("aff.prev")}
+              >
                 ‹
               </button>
-              <button type="button" className="aff-edit" onClick={() => current && openEdit(current, index)}>
-                이 문장 수정
+              <button
+                type="button"
+                className="aff-edit"
+                onClick={() => current && openEdit(current, index)}
+              >
+                {t("aff.editCard")}
               </button>
-              <button type="button" className="aff-arrow" onClick={() => go(1)} aria-label="다음 문장">
+              <button
+                type="button"
+                className="aff-arrow"
+                onClick={() => go(1)}
+                aria-label={t("aff.next")}
+              >
                 ›
               </button>
             </div>
@@ -383,72 +427,73 @@ export function AffirmationsScreen() {
 
           <div className="aff-card-actions">
             <button type="button" className="btn sage-wash" onClick={openAdd}>
-              ＋ 문장 추가
+              ＋ {t("aff.addSentence")}
             </button>
             <button type="button" className="btn" onClick={finish}>
-              확언 마치고 마음기록 남기기
+              {t("aff.finish")}
             </button>
           </div>
         </>
       ) : (
-        <section className="aff-list" aria-label="확언 목록">
+        <section className="aff-list" aria-label={t("aff.list")}>
           {items.map((item, itemIndex) => (
             <article key={item.id} className="aff-row">
               <span className="aff-row-num">{itemIndex + 1}</span>
               <div className="aff-row-text">
                 <p className="ko">{item.ko}</p>
                 <p className="en">{item.en}</p>
+                {item.ja ? <p className="en ja">{item.ja}</p> : null}
               </div>
               <div className="aff-row-actions">
-                <button type="button" onClick={() => openEdit(item, itemIndex)} aria-label="수정">
+                <button type="button" onClick={() => openEdit(item, itemIndex)} aria-label={t("common.edit")}>
                   ✎
                 </button>
                 <button
                   type="button"
                   className={confirmItemDelete === item.id ? "danger" : ""}
                   onClick={() => deleteItem(item)}
-                  aria-label="삭제"
+                  aria-label={t("common.delete")}
                 >
-                  {confirmItemDelete === item.id ? "삭제?" : "✕"}
+                  {confirmItemDelete === item.id ? t("aff.confirmDelete") : "✕"}
                 </button>
               </div>
             </article>
           ))}
           <div className="aff-card-actions">
             <button type="button" className="btn sage-wash" onClick={openAdd}>
-              ＋ 문장 추가
+              ＋ {t("aff.addSentence")}
             </button>
             <button type="button" className="btn" onClick={finish}>
-              확언 마치고 마음기록 남기기
+              {t("aff.finish")}
             </button>
           </div>
         </section>
       )}
 
       <p className="tiny" style={{ textAlign: "center", marginTop: 14 }}>
-        확언은 이 기기에 저장돼요.{" "}
+        {t("aff.foot")}{" "}
         <button
           type="button"
           className="linklike"
           onClick={() => {
-            if (!window.confirm("모든 세션을 기본 120문장으로 되돌릴까요? 직접 만든 세션은 사라져요.")) return;
+            if (!window.confirm(t("aff.resetConfirm"))) return;
             const fresh = resetSessions();
             setSessions(fresh);
             setActiveId(fresh[0].id);
-            toast("기본 문장으로 되돌렸어요");
+            toast(t("aff.resetDone"));
           }}
         >
-          기본 문장으로 되돌리기
+          {t("aff.reset")}
         </button>
       </p>
 
       <Sheet open={Boolean(itemEditor)} onClose={() => setItemEditor(null)} labelledBy="aff-editor-title">
         <h3 id="aff-editor-title">
-          {itemEditor?.mode === "add" ? "문장 추가" : "문장 수정"}
+          {itemEditor?.mode === "add" ? t("aff.editor.add") : t("aff.editor.edit")}
         </h3>
-        <p className="lead">한국어와 영어를 함께 적으면 카드에서 나란히 보여요.</p>
+        <p className="lead">{t("aff.editor.lead")}</p>
         <label className="field">
-          <span>한국어</span>
+          <span>{t("aff.editor.ko")}</span>
           <textarea
             value={editorKo}
             onChange={(event) => setEditorKo(event.target.value)}
@@ -458,7 +503,7 @@ export function AffirmationsScreen() {
           />
         </label>
         <label className="field">
-          <span>English</span>
+          <span>{t("aff.editor.en")}</span>
           <textarea
             value={editorEn}
             onChange={(event) => setEditorEn(event.target.value)}
@@ -467,25 +512,35 @@ export function AffirmationsScreen() {
             placeholder="I am enough, exactly as I am."
           />
         </label>
+        <label className="field">
+          <span>{t("aff.editor.ja")}</span>
+          <textarea
+            value={editorJa}
+            onChange={(event) => setEditorJa(event.target.value)}
+            rows={2}
+            maxLength={160}
+            placeholder="私は今のままで十分です。"
+          />
+        </label>
         <button type="button" className="btn block" onClick={submitItem}>
-          {itemEditor?.mode === "add" ? "추가하기" : "저장하기"}
+          {itemEditor?.mode === "add" ? t("aff.editor.create") : t("aff.editor.save")}
         </button>
       </Sheet>
 
       <Sheet open={sessionEditor} onClose={() => setSessionEditor(false)} labelledBy="aff-session-title">
-        <h3 id="aff-session-title">새 확언 세션</h3>
-        <p className="lead">제목을 직접 정하고, 문장은 만든 뒤에 하나씩 채워요.</p>
+        <h3 id="aff-session-title">{t("aff.session.title")}</h3>
+        <p className="lead">{t("aff.session.lead")}</p>
         <label className="field">
-          <span>제목</span>
+          <span>{t("aff.session.name")}</span>
           <input
             value={newTitle}
             onChange={(event) => setNewTitle(event.target.value)}
             maxLength={40}
-            placeholder="예: 복직을 앞둔 나에게"
+            placeholder={t("aff.session.namePh")}
           />
         </label>
         <label className="field">
-          <span>이모지 (선택)</span>
+          <span>{t("aff.session.emoji")}</span>
           <input
             value={newEmoji}
             onChange={(event) => setNewEmoji(event.target.value.slice(0, 2))}
@@ -494,24 +549,24 @@ export function AffirmationsScreen() {
           />
         </label>
         <label className="field">
-          <span>한 줄 소개 (선택)</span>
+          <span>{t("aff.session.desc")}</span>
           <input
             value={newDesc}
             onChange={(event) => setNewDesc(event.target.value)}
             maxLength={80}
-            placeholder="무엇을 위한 확언인가요?"
+            placeholder={t("aff.session.descPh")}
           />
         </label>
         <button type="button" className="btn block" onClick={createSession}>
-          세션 만들기
+          {t("aff.session.create")}
         </button>
       </Sheet>
 
       <p className="tiny" style={{ textAlign: "center", marginTop: 10 }}>
-        기본 4개 세션은 모두 수정할 수 있어요. 마음에 들지 않는 문장은 지워도 괜찮아요.
+        {t("aff.baseNote")}
         <br />
         <Link href="/diary" className="link">
-          지난 마음기록 보기
+          {t("aff.openDiary")}
         </Link>
       </p>
     </main>
