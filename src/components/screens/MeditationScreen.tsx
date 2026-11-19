@@ -47,14 +47,15 @@ export function MeditationScreen() {
             </div>
 
             {isTimer ? (
-              <Link href="/meditation/timer" className="timer-card">
-                <div className="timer-card-top">
-                  <span className="timer-chip">{t("med.timer.chip")}</span>
-                  <span className="tiny">{t("med.timer.from")}</span>
-                </div>
-                <b>{t("med.timer.title")}</b>
+              <Link href="/meditation/timer" className="course course-solo c-lake">
+                <span className="glyph" aria-hidden="true">
+                  {bucket.glyph}
+                </span>
+                <h4>{t("med.timer.title")}</h4>
                 <p>{t("med.timer.desc")}</p>
-                <span className="timer-card-go">{t("med.timer.open")} ›</span>
+                <span className="meta">
+                  <b>{t("med.timer.chip")}</b> · {t("med.timer.from")}
+                </span>
               </Link>
             ) : (
               <div className="course-grid">
@@ -82,11 +83,6 @@ export function MeditationScreen() {
           </section>
         );
       })}
-
-      <div className="tip-card">
-        <b>{t("med.tipTitle")}</b>
-        <p>{t("med.tip")}</p>
-      </div>
     </main>
   );
 }

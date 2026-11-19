@@ -159,9 +159,6 @@ const ko: Dict = {
   "med.timer.title": "원하는 만큼 앉아 있어요",
   "med.timer.desc": "시작과 끝을 내가 정하고, 끝나면 실제 시간(분:초)이 기록에 남아요.",
   "med.timer.open": "타이머 열기",
-  "med.tipTitle": "어떤 코스를 고를까요?",
-  "med.tip":
-    "3분은 지금 이 순간으로 돌아오기, 10분은 하루 정리, 20분은 바디스캔, 30분은 길게 앉는 날에 어울려요. 자유 타이머는 끝나는 시간을 내가 정하고 싶을 때 써요.",
 
   /* visualization */
   "vis.eyebrow": "장면을 그리는 시간",
@@ -731,9 +728,6 @@ const en: Dict = {
   "med.timer.title": "Sit for as long as you need",
   "med.timer.desc": "You decide when it starts and ends. Your actual time is saved to the minute and second.",
   "med.timer.open": "Open timer",
-  "med.tipTitle": "Which one should I choose?",
-  "med.tip":
-    "3 minutes to come back to now, 10 to settle the day, 20 for a body scan, 30 for a longer sit. Use the free timer when you want to decide the ending yourself.",
 
   "vis.eyebrow": "Time to picture",
   "vis.title": "Visualization",
@@ -1292,9 +1286,6 @@ const ja: Dict = {
   "med.timer.title": "好きなだけ座っていましょう",
   "med.timer.desc": "始まりと終わりを自分で決めて、終わったら実際の時間（分:秒）が記録に残ります。",
   "med.timer.open": "タイマーを開く",
-  "med.tipTitle": "どれを選べばいい？",
-  "med.tip":
-    "3分は今に戻るため、10分は一日を整えるため、20分はボディスキャン、30分は長く座りたい日に。自由なタイマーは、終わる時間を自分で決めたいときに。",
 
   "vis.eyebrow": "情景を描く時間",
   "vis.title": "イメージ",
