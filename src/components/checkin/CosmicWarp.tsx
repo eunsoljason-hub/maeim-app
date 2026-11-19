@@ -154,7 +154,7 @@ export function CosmicWarp({
       /* 남은 잔상을 지워 궤적(모션 블러)을 남긴다 */
       ctx.globalCompositeOperation = "destination-out";
       ctx.globalAlpha = 1;
-      ctx.fillStyle = `rgba(0,0,0,${reduce ? 1 : 1 - Math.pow(0.7, dt / 16.67)})`;
+      ctx.fillStyle = `rgba(0,0,0,${reduce ? 1 : 1 - Math.pow(0.66, dt / 16.67)})`;
       ctx.fillRect(0, 0, width, height);
 
       ctx.globalCompositeOperation = "lighter";
@@ -185,7 +185,9 @@ export function CosmicWarp({
         ctx.stroke();
       }
 
-      /* 별가루 — 원근 투영 + 잔상이 길게 늘어난다 */
+      /* 별가루 — 원근 투영 + 잔상이 길게 늘어난다.
+         별은 source-over로 그려야 잔상이 쌓여 화면이 하얗게 뜨지 않는다. */
+      ctx.globalCompositeOperation = "source-over";
       ctx.lineCap = "round";
       for (let i = 0; i < stars.length; i += 1) {
         const star = stars[i];
@@ -223,6 +225,7 @@ export function CosmicWarp({
         }
       }
 
+      ctx.globalCompositeOperation = "lighter";
       /* 코어 — 빨려 들어갈수록 하얗게 타오르는 중심 */
       const flare = Math.pow(progress, 2.2);
       const coreSize = maxR * (0.22 + flare * 0.85);
@@ -232,7 +235,7 @@ export function CosmicWarp({
       /* 마지막 한순간 — 빛 속으로 사라진다 */
       if (!reduce && progress > 0.88) {
         ctx.globalCompositeOperation = "source-over";
-        ctx.globalAlpha = Math.min(0.7, ((progress - 0.88) / 0.12) * 0.7);
+        ctx.globalAlpha = Math.min(0.55, ((progress - 0.88) / 0.12) * 0.55);
         ctx.fillStyle = "rgba(233,238,255,1)";
         ctx.fillRect(0, 0, width, height);
       }
