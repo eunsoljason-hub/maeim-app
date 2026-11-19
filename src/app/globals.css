@@ -5698,3 +5698,18 @@ select {
   max-width: 74px;
   text-align: right;
 }
+
+/* 일본어 제목이 장음(ー)에서 어색하게 끊기지 않도록 */
+.view-head h1,
+.growth-panel-head h2,
+.studio-page h1 {
+  line-break: strict;
+}
+
+.widget-face.size-large {
+  justify-content: space-between;
+}
+
+.studio-page .view-head h1 {
+  font-size: 21px;
+}
