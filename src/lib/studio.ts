@@ -16,6 +16,8 @@ export interface WidgetSettings {
   showMood: boolean;
   affirmationIndex: number;
   caption: string;
+  /** 사용자가 위젯 언어를 직접 고른 적이 있는지 */
+  langSet?: boolean;
 }
 
 export const WIDGET_KEY = "maeum.widgets.v1";
@@ -64,6 +66,7 @@ export function loadWidget(): WidgetSettings {
       affirmationIndex:
         typeof parsed.affirmationIndex === "number" ? Math.max(0, parsed.affirmationIndex) : 0,
       caption: typeof parsed.caption === "string" ? parsed.caption.slice(0, 80) : "",
+      langSet: Boolean(parsed.langSet),
     };
   } catch {
     return base;
@@ -91,6 +94,8 @@ export interface ReminderSettings {
   methods: ReminderMethod[];
   message: string;
   lang: Lang;
+  /** 사용자가 알림 언어/문구를 직접 고른 적이 있는지 */
+  langSet?: boolean;
   /** 마지막으로 알림을 띄운 "YYYY-MM-DD|HH:MM" (같은 시간 중복 방지) */
   lastFired: string;
 }
@@ -146,6 +151,7 @@ export function loadReminder(): ReminderSettings {
           ? parsed.lang
           : base.lang,
       lastFired: typeof parsed.lastFired === "string" ? parsed.lastFired : "",
+      langSet: Boolean(parsed.langSet),
     };
   } catch {
     return base;

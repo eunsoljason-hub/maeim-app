@@ -6,7 +6,6 @@ import { LifeDirectionBanner } from "@/components/practice/LifeDirectionBanner";
 import { ReminderSettingsPanel } from "@/components/studio/ReminderSettings";
 import { WidgetStudio } from "@/components/studio/WidgetStudio";
 import { useI18n } from "@/lib/i18n/LangProvider";
-import { REMINDER_KEY, WIDGET_KEY } from "@/lib/studio";
 import {
   REMINDER_DEFAULT_MESSAGE,
   defaultReminder,
@@ -27,25 +26,9 @@ export function StudioScreen() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const loadedWidget = loadWidget();
-    const loadedReminder = loadReminder();
-    try {
-      if (!window.localStorage.getItem(WIDGET_KEY)) {
-        loadedWidget.lang = lang;
-        saveWidget(loadedWidget);
-      }
-      if (!window.localStorage.getItem(REMINDER_KEY)) {
-        loadedReminder.lang = lang;
-        loadedReminder.message = REMINDER_DEFAULT_MESSAGE[lang];
-        saveReminder(loadedReminder);
-      }
-    } catch {
-      /* ignore */
-    }
-    setWidget(loadedWidget);
-    setReminder(loadedReminder);
+    setWidget(loadWidget());
+    setReminder(loadReminder());
     setReady(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const updateWidget = (next: WidgetSettings) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/lib/i18n/LangProvider";
 import {
   REMINDER_DEFAULT_MESSAGE,
@@ -30,6 +30,17 @@ export function ReminderSettingsPanel({
     "unsupported",
   );
   const [savedFlash, setSavedFlash] = useState(false);
+  const initialised = useRef(false);
+  const effectiveLang = value.langSet ? value.lang : lang;
+
+  useEffect(() => {
+    if (initialised.current) return;
+    initialised.current = true;
+    if (value.langSet) return;
+    if (value.message && value.message !== REMINDER_DEFAULT_MESSAGE[value.lang]) return;
+    onChange({ ...value, lang: effectiveLang, message: REMINDER_DEFAULT_MESSAGE[effectiveLang] });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effectiveLang]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !("Notification" in window)) {
@@ -180,11 +191,12 @@ export function ReminderSettingsPanel({
 
       <div className="reminder-actions">
         <select
-          value={value.lang}
+          value={effectiveLang}
           onChange={(event) => {
             const next = event.target.value as Lang;
             update({
               lang: next,
+              langSet: true,
               message:
                 value.message === REMINDER_DEFAULT_MESSAGE[value.lang] || !value.message.trim()
                   ? REMINDER_DEFAULT_MESSAGE[next]
@@ -200,7 +212,7 @@ export function ReminderSettingsPanel({
         <button
           type="button"
           className="growth-reset"
-          onClick={() => update({ message: REMINDER_DEFAULT_MESSAGE[value.lang] })}
+          onClick={() => update({ message: REMINDER_DEFAULT_MESSAGE[effectiveLang] })}
         >
           {t("reminder.default")}
         </button>

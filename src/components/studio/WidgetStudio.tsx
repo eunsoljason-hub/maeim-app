@@ -41,6 +41,7 @@ export function WidgetStudio({
     }
   }, []);
 
+  const effectiveLang = value.langSet ? value.lang : lang;
   const stats = practiceStats(plays);
   const level = levelForMinutes(stats.totalMinutes, themeId as "inyou" | "cosmic" | "english");
   const checkIn = loadTodayCheckIn();
@@ -49,21 +50,21 @@ export function WidgetStudio({
   const text = useMemo(
     () => ({
       direction:
-        direction || translate(value.lang, "direction.default"),
-      affirmation: affirmationTextFor(affirmation, value.lang),
-      level: translate(value.lang, `level.${themeId}.${level.level}`),
-      today: translate(value.lang, "widget.todayMood"),
-      total: translate(value.lang, "widget.total"),
-      cta: translate(value.lang, "widget.cta"),
+        direction || translate(effectiveLang, "direction.default"),
+      affirmation: affirmationTextFor(affirmation, effectiveLang),
+      level: translate(effectiveLang, `level.${themeId}.${level.level}`),
+      today: translate(effectiveLang, "widget.todayMood"),
+      total: translate(effectiveLang, "widget.total"),
+      cta: translate(effectiveLang, "widget.cta"),
       minutes: (n: number) =>
         n >= 60
-          ? translate(value.lang, "stats.hoursMin", {
+          ? translate(effectiveLang, "stats.hoursMin", {
               h: Math.floor(n / 60),
               m: Math.round(n % 60),
             })
-          : translate(value.lang, "stats.minutes", { n: Math.round(n) }),
+          : translate(effectiveLang, "stats.minutes", { n: Math.round(n) }),
     }),
-    [direction, affirmation, value.lang, themeId, level.level],
+    [direction, affirmation, effectiveLang, themeId, level.level],
   );
 
   const update = (patch: Partial<WidgetSettings>) => onChange({ ...value, ...patch });
@@ -209,8 +210,8 @@ export function WidgetStudio({
         <label className="widget-caption-field">
           <span>{t("lang.label")}</span>
           <select
-            value={value.lang}
-            onChange={(event) => update({ lang: event.target.value as Lang })}
+            value={effectiveLang}
+            onChange={(event) => update({ lang: event.target.value as Lang, langSet: true })}
           >
             <option value="ko">한국어</option>
             <option value="en">English</option>
