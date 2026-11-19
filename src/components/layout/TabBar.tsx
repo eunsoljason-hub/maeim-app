@@ -51,6 +51,18 @@ const TABS = [
     ),
   },
   {
+    href: "/growth",
+    label: "성장",
+    match: (path: string) => path.startsWith("/growth"),
+    icon: (
+      <>
+        <path d="M4.5 18.5c0-5 3.5-9 7.5-11 4 2 7.5 6 7.5 11" />
+        <path d="M12 18.5V9.5" />
+        <path d="M8.8 13.2 12 12l3.2 1.2" />
+      </>
+    ),
+  },
+  {
     href: "/diary",
     label: "기록",
     match: (path: string) => path.startsWith("/diary"),

@@ -23,6 +23,7 @@ import { slotStateFor } from "@/lib/booking";
 import { streakDays, weekMoodStrip, weekStats } from "@/lib/briefing";
 import { dateKey, fmtDateHeading, fmtWon, greetingForHour } from "@/lib/date";
 import { LifeDirectionBanner } from "@/components/practice/LifeDirectionBanner";
+import { PracticeStatsCard } from "@/components/practice/PracticeStatsCard";
 
 const QUOTES = [
   "“잘하고 있어요. 오늘도 여기까지 왔으니까.”",
@@ -215,6 +216,8 @@ export function InnerHubScreen() {
         </Link>
       </section>
 
+      <PracticeStatsCard />
+
       <div className="stat-row">
         <div className="stat">
           <b>{hydrated ? `${streak}일` : "–"}</b>
@@ -225,8 +228,8 @@ export function InnerHubScreen() {
           <span>이번 주 세션</span>
         </div>
         <div className="stat">
-          <b>{hydrated ? `${stats.minutes}분` : "–"}</b>
-          <span>이번 주 시간</span>
+          <b>{hydrated ? `${stats.diaryDays}일` : "–"}</b>
+          <span>이번 주 기록</span>
         </div>
       </div>
 
