@@ -2835,14 +2835,27 @@ select {
   justify-content: center;
   text-align: center;
   padding: 0 26px;
-  /* 별빛 궤적 위에서도 글씨가 읽히도록 중심에만 은은한 어둠을 깖다 */
-  background: radial-gradient(
-    54% 32% at 50% 50%,
-    rgba(3, 5, 14, 0.66) 0%,
-    rgba(3, 5, 14, 0.34) 52%,
-    rgba(3, 5, 14, 0) 78%
-  );
   animation: copyRise 1.6s ease both;
+}
+
+/* 문구 뒤에만 까는 얇은 스크림 — 별빛 궤적 위에서도 글씨가 읽히게 */
+.cosmic-copy::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 6%;
+  right: 6%;
+  top: 50%;
+  height: 190px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    60% 50% at 50% 50%,
+    rgba(3, 5, 14, 0.6) 0%,
+    rgba(3, 5, 14, 0.32) 60%,
+    rgba(3, 5, 14, 0) 100%
+  );
+  pointer-events: none;
 }
 
 @keyframes copyRise {
