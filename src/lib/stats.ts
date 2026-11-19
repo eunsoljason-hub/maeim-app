@@ -151,10 +151,11 @@ export function practiceStats(plays: PlayRecord[], now: Date = new Date()): Prac
     }
   }
 
+  const round1 = (value: number) => Math.round(value * 10) / 10;
   return {
-    todayMinutes: Math.round(todayMinutes),
-    weekMinutes: Math.round(weekMinutes),
-    totalMinutes: Math.round(totalMinutes),
+    todayMinutes: round1(todayMinutes),
+    weekMinutes: round1(weekMinutes),
+    totalMinutes: round1(totalMinutes),
     todaySessions,
     weekSessions,
     totalSessions: plays.length,

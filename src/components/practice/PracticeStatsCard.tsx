@@ -46,7 +46,11 @@ export function PracticeStatsCard({ compact = false }: { compact?: boolean }) {
   const level = levelForMinutes(stats.totalMinutes, themeId);
 
   const minutesText = (value: number) => {
-    const total = Math.max(0, Math.round(value));
+    const raw = Math.max(0, value);
+    if (raw > 0 && raw < 1) {
+      return `${Math.round(raw * 60)}${t("common.seconds")}`;
+    }
+    const total = Math.round(raw);
     if (total < 60) return t("stats.minutes", { n: total });
     const h = Math.floor(total / 60);
     const m = total % 60;
