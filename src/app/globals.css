@@ -182,7 +182,7 @@ select {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin: 26px 2px 11px;
+  margin: 30px 2px 12px;
 }
 
 .section-head h2,
@@ -1052,8 +1052,8 @@ select {
 }
 
 .diary-form {
-  margin-top: 16px;
-  padding: 18px 16px 16px;
+  margin-top: 14px;
+  padding: 20px 18px 18px;
 }
 
 .form-label {
@@ -1215,8 +1215,8 @@ select {
   position: relative;
   background: var(--paper);
   border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 15px 16px 14px;
+  border-radius: 20px;
+  padding: 17px 17px 15px;
   box-shadow: var(--shadow-sm);
 }
 
@@ -3234,7 +3234,7 @@ select {
   justify-content: center;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 16px;
+  margin-top: 20px;
   color: var(--muted);
 }
 
@@ -3504,9 +3504,9 @@ select {
 /* --------------------------- 누적 시간 · 레벨 --------------------------- */
 
 .practice-card {
-  margin-top: 16px;
-  padding: 16px 16px 13px;
-  border-radius: 20px;
+  margin-top: 20px;
+  padding: 19px 18px 16px;
+  border-radius: 22px;
   background:
     linear-gradient(150deg, rgba(122, 114, 166, 0.12), rgba(78, 107, 91, 0.1)),
     var(--paper);
@@ -3884,6 +3884,134 @@ select {
   color: var(--sub);
 }
 
+/* 시각화 1단계 — 큰 카테고리 세 갈래 */
+.vis-cats {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.vis-cat {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  width: 100%;
+  padding: 19px 17px 17px;
+  border-radius: 21px;
+  text-align: left;
+  border: 1px solid rgba(38, 40, 47, 0.07);
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.6));
+  box-shadow: 0 12px 30px -24px rgba(48, 48, 70, 0.45);
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.vis-cat:active {
+  transform: translateY(1px);
+  box-shadow: 0 6px 18px -18px rgba(48, 48, 70, 0.45);
+}
+
+.vis-cat-glyph {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+  display: grid;
+  place-items: center;
+  font-size: 21px;
+}
+
+.vis-cat-morning .vis-cat-glyph {
+  background: linear-gradient(150deg, rgba(255, 214, 148, 0.55), rgba(255, 236, 208, 0.65));
+}
+
+.vis-cat-release .vis-cat-glyph {
+  background: linear-gradient(150deg, rgba(126, 154, 135, 0.26), rgba(198, 220, 204, 0.42));
+}
+
+.vis-cat-wish .vis-cat-glyph {
+  background: linear-gradient(150deg, rgba(150, 138, 200, 0.26), rgba(214, 206, 240, 0.5));
+}
+
+.vis-cat-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.vis-cat-kicker {
+  font-size: 8.5px;
+  letter-spacing: 0.2em;
+  font-weight: 800;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.vis-cat-body b {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 17.5px;
+  font-weight: 800;
+  letter-spacing: -0.028em;
+}
+
+.vis-cat-body b em {
+  font-style: normal;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.vis-cat-desc {
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--sub);
+  word-break: keep-all;
+}
+
+.vis-cat-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 9px;
+}
+
+.vis-cat-chips span {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(38, 40, 47, 0.045);
+  font-size: 8.5px;
+  color: var(--sub);
+}
+
+/* 시각화 2단계 — 뒤로가기 */
+.vis-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 2px 0 8px;
+  padding: 4px 4px 4px 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sub);
+}
+
+.vis-back span {
+  font-size: 17px;
+  line-height: 1;
+  margin-top: -1px;
+}
+
+.vis-back:active {
+  color: var(--sage);
+}
+
 .vis-list {
   display: grid;
   gap: 8px;
@@ -3893,8 +4021,8 @@ select {
   display: flex;
   align-items: flex-start;
   gap: 11px;
-  padding: 13px 14px;
-  border-radius: 17px;
+  padding: 15px 15px;
+  border-radius: 18px;
   background: var(--paper);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-sm);
@@ -5132,9 +5260,9 @@ select {
 }
 
 .month-card {
-  margin-top: 16px;
-  padding: 16px 16px 14px;
-  border-radius: 20px;
+  margin-top: 18px;
+  padding: 18px 17px 16px;
+  border-radius: 22px;
   background:
     radial-gradient(120% 100% at 100% 0%, rgba(199, 162, 104, 0.16), transparent 55%),
     var(--paper);
