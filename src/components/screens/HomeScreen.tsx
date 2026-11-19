@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useApp } from "@/components/providers/AppProvider";
 import {
   COURSES,
+  COURSE_CATEGORIES,
   HOST,
   QUICK_MOOD_IDS,
   SLOT_TIMES,
@@ -12,6 +13,7 @@ import {
   moodById,
   recommendForHour,
 } from "@/lib/constants";
+import type { CourseCategory } from "@/lib/types";
 import { slotStateFor } from "@/lib/booking";
 import { streakDays, weekMoodStrip, weekStats } from "@/lib/briefing";
 import {
@@ -35,6 +37,11 @@ const QUOTES = [
 export function HomeScreen() {
   const { diaries, plays, slots, bookings, user, hydrated, mode, configured } = useApp();
   const [now, setNow] = useState<Date | null>(null);
+  const [category, setCategory] = useState<CourseCategory | "all">("all");
+
+  const visibleCategories = COURSE_CATEGORIES.filter(
+    (item) => category === "all" || item.id === category,
+  );
 
   useEffect(() => {
     setNow(new Date());
@@ -176,24 +183,63 @@ export function HomeScreen() {
         <h2>오늘의 코스</h2>
         <span className="tiny">{COURSES.length}개</span>
       </div>
-      <div className="course-grid">
-        {COURSES.map((course) => (
-          <Link
-            key={course.id}
-            href={`/player/${course.id}`}
-            className={`course c-${course.tone}`}
+
+      <div className="seg" role="group" aria-label="코스 분류">
+        <button
+          type="button"
+          aria-pressed={category === "all"}
+          className={category === "all" ? "on" : ""}
+          onClick={() => setCategory("all")}
+        >
+          전체
+        </button>
+        {COURSE_CATEGORIES.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            aria-pressed={category === item.id}
+            className={category === item.id ? "on" : ""}
+            onClick={() => setCategory(item.id)}
           >
-            <span className="glyph" aria-hidden="true">
-              {course.glyph}
-            </span>
-            <h4>{course.title}</h4>
-            <p>{course.subtitle}</p>
-            <span className="meta">
-              <b>{course.minutes}분</b> · {THEMES[course.theme].label}
-            </span>
-          </Link>
+            {item.label}
+          </button>
         ))}
       </div>
+
+      {visibleCategories.map((item) => {
+        const courses = COURSES.filter((course) => course.category === item.id);
+        return (
+          <section key={item.id} className="cat-block" aria-label={`${item.label} 코스`}>
+            <div className="cat-head">
+              <h3>
+                <span className={`cat-dot ${item.id}`} aria-hidden="true" />
+                {item.label}
+              </h3>
+              <span className="tiny">
+                {item.description} · {courses.length}개
+              </span>
+            </div>
+            <div className="course-grid">
+              {courses.map((course) => (
+                <Link
+                  key={course.id}
+                  href={`/player/${course.id}`}
+                  className={`course c-${course.tone}`}
+                >
+                  <span className="glyph" aria-hidden="true">
+                    {course.glyph}
+                  </span>
+                  <h4>{course.title}</h4>
+                  <p>{course.subtitle}</p>
+                  <span className="meta">
+                    <b>{course.minutes}분</b> · {THEMES[course.theme].label}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        );
+      })}
 
       <div className="stat-row">
         <div className="stat">

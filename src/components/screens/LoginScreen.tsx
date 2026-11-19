@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useApp } from "@/components/providers/AppProvider";
-import { APP_NAME, APP_TAGLINE, HOST } from "@/lib/constants";
+import { APP_NAME_FULL, APP_TAGLINE, HOST } from "@/lib/constants";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 
 export function LoginScreen() {
@@ -48,7 +48,7 @@ export function LoginScreen() {
           🌿
         </div>
         <p className="eyebrow" style={{ marginTop: 18 }}>
-          {APP_NAME}
+          {APP_NAME_FULL}
         </p>
         <h1 style={{ fontSize: 24, letterSpacing: "-0.03em", marginTop: 6 }}>
           {APP_TAGLINE}

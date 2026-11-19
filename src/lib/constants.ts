@@ -1,9 +1,12 @@
-import type { Course, MoodId, PaymentMethodId, ThemeId } from "./types";
+import type { Course, CourseCategory, MoodId, PaymentMethodId, ThemeId } from "./types";
 
-export const APP_NAME = "마음명상";
+export const APP_NAME = "인유";
+export const APP_NAME_EN = "InYou";
+/** Brand lock-up for places with room for both scripts. */
+export const APP_NAME_FULL = `${APP_NAME} (${APP_NAME_EN})`;
 export const APP_TAGLINE = "3분이면 시작되는 마음 돌봄";
 export const APP_DESCRIPTION =
-  "노래와 배경 화면으로 듣는 명상 코스, 매일 남기는 마음일기, 그리고 은솔님과 3·5·10분으로 이야기하는 1:1 마이크로 리스닝 상담.";
+  "명상과 시각화 코스, 매일 남기는 마음일기, 그리고 은솔님과 3·5·10분으로 이야기하는 1:1 마이크로 리스닝 상담.";
 
 export const HOST = {
   id: "eunsol",
@@ -74,9 +77,46 @@ export function moodById(id: MoodId | string | null | undefined) {
   return MOODS.find((m) => m.id === id) ?? MOODS[2];
 }
 
+/**
+ * 듣기 코스는 두 갈래로 나뉘어요.
+ * - meditation: 호흡·바디스캔·수면·마음챙김처럼 몸의 감각에 머무는 명상
+ * - visualization: 장면·빛·내면의 이미지를 그려보는 시각화
+ */
+export const COURSE_CATEGORIES: {
+  id: CourseCategory;
+  label: string;
+  description: string;
+}[] = [
+  { id: "meditation", label: "명상", description: "호흡 · 바디스캔 · 수면 · 마음챙김" },
+  { id: "visualization", label: "시각화", description: "장면 · 빛 · 내면의 이미지" },
+];
+
+export function coursesByCategory(category: CourseCategory): Course[] {
+  return COURSES.filter((course) => course.category === category);
+}
+
 export const COURSES: Course[] = [
+  /* ------------------------------- 명상 ------------------------------- */
+  {
+    id: "c3",
+    category: "meditation",
+    title: "3분 마음챙김",
+    subtitle: "지금 이 순간으로 돌아오기",
+    description:
+      "앉은 자리에서 숨만 세어도 충분해요. 3분 동안 들이쉬고 내쉬는 숨에 주의를 두고, 생각은 흘려보내요.",
+    minutes: 3,
+    theme: "lake",
+    glyph: "🫧",
+    tone: "lake",
+    tag: "마음챙김",
+    audioUrl: null,
+    breath: { inhale: 4, hold: 2, exhale: 6 },
+    free: true,
+    sortOrder: 1,
+  },
   {
     id: "c10",
+    category: "meditation",
     title: "10분 코스",
     subtitle: "하루를 정리하는 호흡",
     description:
@@ -89,10 +129,11 @@ export const COURSES: Course[] = [
     audioUrl: null,
     breath: { inhale: 4, hold: 2, exhale: 6 },
     free: true,
-    sortOrder: 1,
+    sortOrder: 2,
   },
   {
     id: "c20",
+    category: "meditation",
     title: "20분 코스",
     subtitle: "깊은 이완 · 바디스캔",
     description:
@@ -105,26 +146,11 @@ export const COURSES: Course[] = [
     audioUrl: null,
     breath: { inhale: 4, hold: 2, exhale: 6 },
     free: false,
-    sortOrder: 2,
-  },
-  {
-    id: "vis",
-    title: "시각화 명상",
-    subtitle: "나만의 안전한 방",
-    description:
-      "눈을 감고 나만의 안전한 방을 그려봐요. 문을 닫고, 조명을 고르고, 숨을 고르는 시간.",
-    minutes: 10,
-    theme: "night",
-    glyph: "🌙",
-    tone: "night",
-    tag: "시각화",
-    audioUrl: null,
-    breath: { inhale: 4, hold: 2, exhale: 6 },
-    free: false,
     sortOrder: 3,
   },
   {
     id: "sleep",
+    category: "meditation",
     title: "수면 호흡",
     subtitle: "4-7-8 호흡으로 잠들기",
     description:
@@ -138,6 +164,58 @@ export const COURSES: Course[] = [
     breath: { inhale: 4, hold: 7, exhale: 8 },
     free: false,
     sortOrder: 4,
+  },
+  /* ------------------------------ 시각화 ------------------------------ */
+  {
+    id: "vis",
+    category: "visualization",
+    title: "안전한 방",
+    subtitle: "나만의 안전한 방",
+    description:
+      "눈을 감고 나만의 안전한 방을 그려봐요. 문을 닫고, 조명을 고르고, 숨을 고르는 시간.",
+    minutes: 10,
+    theme: "night",
+    glyph: "🌙",
+    tone: "night",
+    tag: "시각화",
+    audioUrl: null,
+    breath: { inhale: 4, hold: 2, exhale: 6 },
+    free: false,
+    sortOrder: 5,
+  },
+  {
+    id: "vis-light",
+    category: "visualization",
+    title: "빛의 호수",
+    subtitle: "빛으로 채우는 몸",
+    description:
+      "머리끝으로 스며든 따뜻한 빛이 어깨와 가슴을 지나 발끝까지 천천히 내려가는 장면을 그려봐요. 무거운 곳에 빛을 머물게 해요.",
+    minutes: 8,
+    theme: "lake",
+    glyph: "✨",
+    tone: "lake",
+    tag: "시각화",
+    audioUrl: null,
+    breath: { inhale: 4, hold: 2, exhale: 6 },
+    free: false,
+    sortOrder: 6,
+  },
+  {
+    id: "vis-garden",
+    category: "visualization",
+    title: "내면의 정원",
+    subtitle: "마음속 정원을 거닐기",
+    description:
+      "문을 열면 내가 가꾼 정원이 있어요. 오늘 마음에 필요한 나무 한 그루를 심고, 그 그늘에 잠깐 앉아봐요.",
+    minutes: 12,
+    theme: "forest",
+    glyph: "🌷",
+    tone: "forest",
+    tag: "시각화",
+    audioUrl: null,
+    breath: { inhale: 4, hold: 2, exhale: 6 },
+    free: false,
+    sortOrder: 7,
   },
 ];
 
@@ -258,11 +336,11 @@ export const CRISIS_LINES = [
 ];
 
 export const LISTENING_DISCLAIMER =
-  "마음명상의 1:1 마이크로 상담은 의료 행위가 아닌 리스닝(경청) 서비스입니다. 심리상담·치료·진단을 제공하지 않으며, 위기 상황에서는 109 또는 1577-0199에 연락해 주세요.";
+  "인유의 1:1 마이크로 상담은 의료 행위가 아닌 리스닝(경청) 서비스입니다. 심리상담·치료·진단을 제공하지 않으며, 위기 상황에서는 109 또는 1577-0199에 연락해 주세요.";
 
 /** Commerce information required by Korean e-commerce law — fill before launch. */
 export const COMMERCE_INFO = {
-  brand: "마음명상",
+  brand: "인유",
   company: "[상호 입력 — 개인사업자 등록 후]",
   representative: "최은솔",
   businessNumber: "[사업자등록번호 입력]",

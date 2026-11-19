@@ -20,9 +20,14 @@ export type PaymentStatus = "pending" | "paid" | "demo" | "failed" | "cancelled"
 
 export type PaymentMethodId = "card" | "transfer" | "easypay";
 
+/** 명상(호흡·바디스캔·수면·마음챙김)과 시각화(장면·빛·내면 이미지) 두 갈래. */
+export type CourseCategory = "meditation" | "visualization";
+
 export interface Course {
   /** Stable identifier used in URLs and the database seed. */
-  id: "c10" | "c20" | "vis" | "sleep";
+  id: "c3" | "c10" | "c20" | "vis" | "vis-light" | "vis-garden" | "sleep";
+  /** Which of the two listening categories this course belongs to. */
+  category: CourseCategory;
   title: string;
   subtitle: string;
   description: string;

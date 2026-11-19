@@ -4,7 +4,7 @@ import { COMMERCE_INFO, CRISIS_LINES, LISTENING_DISCLAIMER } from "@/lib/constan
 
 export const metadata: Metadata = {
   title: "이용약관",
-  description: "마음명상 서비스 이용약관",
+  description: "인유 서비스 이용약관",
 };
 
 export default function TermsPage() {

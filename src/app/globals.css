@@ -509,6 +509,44 @@ select {
   background: #e3ede4;
 }
 
+.cat-block {
+  margin-top: 18px;
+}
+
+.cat-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 2px 9px;
+}
+
+.cat-head h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.cat-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #8fb79a;
+}
+
+.cat-dot.visualization {
+  background: #a79ecd;
+}
+
+.cat-head .tiny {
+  flex: 1;
+  text-align: right;
+}
+
 .stat-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

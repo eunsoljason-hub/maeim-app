@@ -1,10 +1,10 @@
-/* 마음명상 service worker
+/* 인유(InYou) service worker
  * - App shell + offline page cached at install
  * - Navigations: network first, then cache, then /offline
  * - _next/static, icons: cache first (immutable)
  * - /audio/*: cached on first play so one meditation course keeps working offline
  */
-const VERSION = "maeum-v1";
+const VERSION = "inyou-v1";
 const SHELL_CACHE = `${VERSION}-shell`;
 const STATIC_CACHE = `${VERSION}-static`;
 const PAGE_CACHE = `${VERSION}-pages`;

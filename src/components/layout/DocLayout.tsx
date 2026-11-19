@@ -12,7 +12,7 @@ export function DocLayout({
   return (
     <article className="doc">
       <Link href="/" className="doc-back">
-        ‹ 마음명상으로 돌아가기
+        ‹ 인유로 돌아가기
       </Link>
       <h1>{title}</h1>
       <p className="doc-meta">시행일 2026년 11월 18일 · {COMMERCE_INFO.brand}</p>

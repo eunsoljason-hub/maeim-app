@@ -4,7 +4,7 @@ import { COMMERCE_INFO, LISTENING_DISCLAIMER } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "취소·환불 정책",
-  description: "마음명상 1:1 리스닝 상담의 취소·환불 정책",
+  description: "인유 1:1 리스닝 상담의 취소·환불 정책",
 };
 
 export default function RefundPage() {

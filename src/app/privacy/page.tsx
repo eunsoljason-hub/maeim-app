@@ -4,7 +4,7 @@ import { COMMERCE_INFO, CRISIS_LINES } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "개인정보처리방침",
-  description: "마음명상 개인정보처리방침",
+  description: "인유 개인정보처리방침",
 };
 
 export default function PrivacyPage() {

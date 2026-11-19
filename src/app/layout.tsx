@@ -2,14 +2,14 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AppProvider } from "@/components/providers/AppProvider";
 import { AppShell } from "@/components/layout/AppShell";
-import { APP_DESCRIPTION, APP_NAME, APP_TAGLINE } from "@/lib/constants";
+import { APP_DESCRIPTION, APP_NAME, APP_NAME_EN, APP_TAGLINE } from "@/lib/constants";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: `${APP_NAME} · 명상 · 마음일기 · 3분 상담`,
+    default: `${APP_NAME} (${APP_NAME_EN}) · 명상 · 시각화 · 마음일기`,
     template: `%s · ${APP_NAME}`,
   },
   description: APP_DESCRIPTION,
@@ -30,15 +30,15 @@ export const metadata: Metadata = {
   },
   formatDetection: { telephone: false },
   openGraph: {
-    title: `${APP_NAME} — ${APP_TAGLINE}`,
+    title: `${APP_NAME} (${APP_NAME_EN}) — ${APP_TAGLINE}`,
     description: APP_DESCRIPTION,
     type: "website",
     locale: "ko_KR",
-    siteName: APP_NAME,
+    siteName: `${APP_NAME} (${APP_NAME_EN})`,
   },
   twitter: {
     card: "summary",
-    title: `${APP_NAME} — ${APP_TAGLINE}`,
+    title: `${APP_NAME} (${APP_NAME_EN}) — ${APP_TAGLINE}`,
     description: APP_DESCRIPTION,
   },
 };
