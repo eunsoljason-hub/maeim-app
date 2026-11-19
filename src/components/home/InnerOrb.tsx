@@ -179,28 +179,49 @@ export function InnerOrb() {
       ctx.globalCompositeOperation = "lighter";
       for (const band of bands) {
         const rot = t * band.speed + band.phase;
-        const rx = R * band.rx;
-        const ry = R * band.ry;
-        const segs = 40;
-        for (let s = 0; s < segs; s++) {
-          const p0 = s / segs;
-          const p1 = (s + 1) / segs;
-          const a0 = rot + p0 * Math.PI * 2;
-          const a1 = rot + p1 * Math.PI * 2;
-          const w0 = 1 + 0.14 * Math.sin(a0 * band.waves + t * 1.1);
-          const w1 = 1 + 0.14 * Math.sin(a1 * band.waves + t * 1.1);
-          const x0 = cx + Math.cos(a0) * rx * w0;
-          const y0 = cy + Math.sin(a0) * ry * w0;
-          const x1 = cx + Math.cos(a1) * rx * w1;
-          const y1 = cy + Math.sin(a1) * ry * w1;
-          const shimmer = 0.35 + 0.65 * Math.abs(Math.sin(a0 * 1.3 + t * 0.8));
-          ctx.strokeStyle = `rgba(${band.color},${band.alpha * shimmer})`;
-          ctx.lineWidth = band.width * (0.7 + 0.3 * shimmer);
-          ctx.lineCap = "round";
+        const N = 96;
+        const pts: [number, number][] = [];
+        for (let i = 0; i <= N; i++) {
+          const a = rot + (i / N) * Math.PI * 2;
+          const w = 1 + 0.12 * Math.sin(a * band.waves + t * 1.1);
+          pts.push([cx + Math.cos(a) * R * band.rx * w, cy + Math.sin(a) * R * band.ry * w]);
+        }
+        const trace = () => {
           ctx.beginPath();
-          ctx.moveTo(x0, y0);
-          ctx.lineTo(x1, y1);
-          ctx.stroke();
+          pts.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)));
+          ctx.closePath();
+        };
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        /* 부드러운 띠 두 겹 — 넓고 흐린 결 위에 얇고 밝은 결 */
+        trace();
+        ctx.strokeStyle = `rgba(${band.color},${band.alpha * 0.42})`;
+        ctx.lineWidth = band.width * 2.6;
+        ctx.stroke();
+        trace();
+        ctx.strokeStyle = `rgba(${band.color},${band.alpha})`;
+        ctx.lineWidth = band.width * 0.75;
+        ctx.stroke();
+
+        /* 띠 위를 흘러가는 빛 — 회전을 눈으로 보여준다 */
+        for (let g = 0; g < 2; g++) {
+          const head = rot * 1.6 + g * Math.PI + t * 0.5;
+          const segs = 14;
+          for (let s = 0; s < segs; s++) {
+            const p0 = s / segs;
+            const p1 = (s + 1) / segs;
+            const a0 = head + p0 * 0.5;
+            const a1 = head + p1 * 0.5;
+            const w0 = 1 + 0.12 * Math.sin(a0 * band.waves + t * 1.1);
+            const w1 = 1 + 0.12 * Math.sin(a1 * band.waves + t * 1.1);
+            const fade = Math.sin(p0 * Math.PI) ** 1.6;
+            ctx.strokeStyle = `rgba(255,255,255,${0.5 * fade})`;
+            ctx.lineWidth = band.width * 0.9 * fade + 0.6;
+            ctx.beginPath();
+            ctx.moveTo(cx + Math.cos(a0) * R * band.rx * w0, cy + Math.sin(a0) * R * band.ry * w0);
+            ctx.lineTo(cx + Math.cos(a1) * R * band.rx * w1, cy + Math.sin(a1) * R * band.ry * w1);
+            ctx.stroke();
+          }
         }
       }
 
@@ -261,7 +282,7 @@ export function InnerOrb() {
       const coreY = cy - R * 0.26 + Math.sin(t * 0.33) * R * 0.08;
       const coreR = R * (0.36 + 0.04 * Math.sin(t * 0.7 + 0.6));
       const cg = ctx.createRadialGradient(coreX, coreY, 0, coreX, coreY, coreR);
-      cg.addColorStop(0, "rgba(255,255,255,0.95)");
+      cg.addColorStop(0, "rgba(255,255,255,0.88)");
       cg.addColorStop(0.22, "rgba(226,236,255,0.5)");
       cg.addColorStop(0.62, "rgba(196,210,255,0.14)");
       cg.addColorStop(1, "rgba(226,236,255,0)");
