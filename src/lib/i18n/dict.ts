@@ -1580,7 +1580,7 @@ const ja: Dict = {
   "player.bgmDefaultDesc": "生成した環境音 / 無音 — 雨・波・焚き火",
   "player.bgmFine": "Pixabayからダウンロードしてオフライン配布にも使えます。ファイル単体の再販売・再配布のみ禁止です。",
 
-  "direction.label": "私の向かう方向",
+  "direction.label": "VISION",
   "direction.default": "私は自分のペースで、大切な人とたくさん笑って生きていきます。",
   "direction.ph": "向かっている方向、今日守りたい一行",
   "direction.save": "保存",
