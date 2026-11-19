@@ -6,17 +6,18 @@ import { stopWarpAudio } from "@/lib/audio/warp";
 /**
  * 체크인 직후 재생되는 코스믹 워프.
  *
- * 우주 공간으로 빨려 들어가는 느낌을 내기 위해 한 장의 캔버스에
- *  · 원근 투영된 3겹 별가루(가까운 별은 길게 늘어나고, 먼 별은 점으로 남는다)
- *  · 바깥으로 흘러 지나가는 성운 덩어리
- *  · 중심에서 퍼져 나가는 웜홀 링
- *  · 마지막에 빛으로 빨려 들어가는 코어 플레어
- * 를 겹쳐 그린다. 효과음은 버튼 클릭 제스처에서 미리 열어 둔
- * WebAudio 신스(primeWarpAudio)가 이어서 낸다.
+ * 우주 공간으로 빨려 들어가는 느낌을 내기 위해, 투명 캔버스 위에 매 프레임
+ *  · 별가루를 원근 투영해 찍고 (남은 잔상 = 자연스러운 모션 블러 궤적)
+ *  · 성운 덩어리가 바깥으로 흘러 지나가고
+ *  · 중심에서 웜홀 링이 퍼져 나가고
+ *  · 마지막에 코어 빛이 화면을 채우며 빨려 들어간다
+ * 배경의 깊은 우주 그라데이션은 CSS가 그린다.
+ *
+ * 효과음은 버튼 클릭 제스처에서 미리 열어 둔 WebAudio 신스(primeWarpAudio)가 낸다.
  */
 
-const WARP_MS = 4400;
-const LEAVE_AT = 3760;
+const WARP_MS = 4600;
+const LEAVE_AT = 3900;
 
 type Star = {
   ang: number;
@@ -34,14 +35,10 @@ type Wisp = {
   sprite: number;
 };
 
-const TINTS = [
-  "226,234,255",
-  "152,186,255",
-  "226,190,255",
-];
+const TINTS = ["232,239,255", "160,192,255", "228,190,255"];
 
 function halo(inner: string, mid: string) {
-  const size = 192;
+  const size = 160;
   const c = document.createElement("canvas");
   c.width = size;
   c.height = size;
@@ -49,7 +46,7 @@ function halo(inner: string, mid: string) {
   if (g) {
     const grd = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
     grd.addColorStop(0, inner);
-    grd.addColorStop(0.42, mid);
+    grd.addColorStop(0.4, mid);
     grd.addColorStop(1, "rgba(0,0,0,0)");
     g.fillStyle = grd;
     g.fillRect(0, 0, size, size);
@@ -77,7 +74,7 @@ export function CosmicWarp({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d", { alpha: false });
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     const reduce =
@@ -91,22 +88,16 @@ export function CosmicWarp({
     let maxR = Math.hypot(cx, cy);
     const dpr = Math.min(2, window.devicePixelRatio || 1);
 
-    let bg: CanvasGradient | null = null;
-    let vignette: CanvasGradient | null = null;
-    let core: HTMLCanvasElement | null = null;
-    const sprites: HTMLCanvasElement[] = [];
+    const core = halo("rgba(255,255,255,0.95)", "rgba(172,190,255,0.45)");
+    const sprites = [
+      halo("rgba(146,160,255,0.55)", "rgba(72,64,168,0.28)"),
+      halo("rgba(255,176,226,0.45)", "rgba(128,62,156,0.22)"),
+      halo("rgba(122,226,255,0.4)", "rgba(34,94,152,0.2)"),
+      halo("rgba(190,176,255,0.38)", "rgba(58,50,140,0.18)"),
+    ];
 
     const stars: Star[] = [];
     const wisps: Wisp[] = [];
-
-    const seedStar = (star: Partial<Star> = {}): Star => ({
-      ang: Math.random() * Math.PI * 2,
-      rad: 0.04 + Math.random() * 0.9,
-      depth: 0.3 + Math.random() * 0.7,
-      w: 0.55 + Math.random() * 1.5,
-      tint: Math.random() < 0.62 ? 0 : Math.random() < 0.7 ? 1 : 2,
-      ...star,
-    });
 
     const layout = () => {
       width = window.innerWidth;
@@ -118,41 +109,27 @@ export function CosmicWarp({
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       cx = width / 2;
       cy = height / 2;
-      maxR = Math.hypot(cx, cy) * 1.08;
-
-      bg = ctx.createRadialGradient(cx, cy, 0, cx, cy * 1.05, maxR * 1.35);
-      bg.addColorStop(0, "#1b2140");
-      bg.addColorStop(0.28, "#121733");
-      bg.addColorStop(0.62, "#090c1d");
-      bg.addColorStop(1, "#03040b");
-
-      vignette = ctx.createRadialGradient(cx, cy, maxR * 0.35, cx, cy, maxR * 1.12);
-      vignette.addColorStop(0, "rgba(0,0,0,0)");
-      vignette.addColorStop(0.72, "rgba(2,3,10,0.35)");
-      vignette.addColorStop(1, "rgba(1,2,7,0.92)");
+      maxR = Math.hypot(cx, cy) * 1.06;
     };
-
     layout();
 
-    if (!core) {
-      core = halo("rgba(255,255,255,0.95)", "rgba(166,184,255,0.45)");
-      sprites.push(
-        halo("rgba(150,164,255,0.5)", "rgba(70,62,160,0.26)"),
-        halo("rgba(255,178,224,0.4)", "rgba(126,64,150,0.2)"),
-        halo("rgba(126,224,255,0.36)", "rgba(36,92,148,0.18)"),
-        halo("rgba(190,180,255,0.34)", "rgba(60,54,140,0.16)"),
-      );
-    }
+    const seed = (rad = 0.05 + Math.random() * 0.95): Star => ({
+      ang: Math.random() * Math.PI * 2,
+      rad,
+      depth: 0.35 + Math.random() * 0.65,
+      w: 0.6 + Math.random() * 1.7,
+      tint: Math.random() < 0.6 ? 0 : Math.random() < 0.72 ? 1 : 2,
+    });
 
-    const count = reduce ? 120 : width < 430 ? 260 : 400;
-    for (let i = 0; i < count; i += 1) stars.push(seedStar());
+    const count = reduce ? 160 : width < 430 ? 340 : 520;
+    for (let i = 0; i < count; i += 1) stars.push(seed());
 
-    for (let i = 0; i < 5; i += 1) {
+    for (let i = 0; i < 6; i += 1) {
       wisps.push({
         ang: Math.random() * Math.PI * 2,
-        rad: Math.random() * 0.85,
-        speed: 0.05 + Math.random() * 0.12,
-        size: 190 + Math.random() * 240,
+        rad: Math.random() * 0.9,
+        speed: 0.06 + Math.random() * 0.14,
+        size: 150 + Math.random() * 210,
         sprite: i % sprites.length,
       });
     }
@@ -161,103 +138,105 @@ export function CosmicWarp({
     let last = performance.now();
     const started = last;
     let spin = Math.random() * Math.PI;
+    const trail = new Map<number, { x: number; y: number }>();
 
     const draw = (now: number) => {
       const dt = Math.min(46, Math.max(4, now - last));
       last = now;
       const step = dt / 1000;
-      const progress = reduce ? 0.34 : Math.min(1, (now - started) / WARP_MS);
+      const progress = reduce ? 0.3 : Math.min(1, (now - started) / WARP_MS);
 
-      /* 속도 곡선: 천천히 떠오르다가 후반에 깊게 빨려 들어간다 */
-      const ramp = Math.min(1, progress / 0.72);
-      const speed = 0.32 + Math.pow(ramp, 1.8) * 3.1;
-      spin += step * 0.035 * (0.6 + speed * 0.18);
+      /* 빨려 들어가는 속도 곡선 — 천천히 떠오르다 후반에 깊게 가속 */
+      const ramp = Math.min(1, progress / 0.62);
+      const speed = reduce ? 0 : 0.5 + Math.pow(ramp, 1.7) * 4.6;
+      spin += step * (0.05 + speed * 0.02);
 
-      /* 배경 */
-      ctx.globalCompositeOperation = "source-over";
+      /* 남은 잔상을 지워 궤적(모션 블러)을 남긴다 */
+      ctx.globalCompositeOperation = "destination-out";
       ctx.globalAlpha = 1;
-      ctx.fillStyle = bg ?? "#05060f";
+      ctx.fillStyle = `rgba(0,0,0,${reduce ? 1 : 1 - Math.pow(0.78, dt / 16.67)})`;
       ctx.fillRect(0, 0, width, height);
 
-      /* 성운 — 중심에서 바깥으로 흘러 지나간다 */
       ctx.globalCompositeOperation = "lighter";
+
+      /* 성운 — 중심에서 바깥으로 흘러 지나가는 덩어리 */
       for (const wisp of wisps) {
-        const rad = (wisp.rad + (now - started) / 1000 * wisp.speed * (0.4 + speed * 0.5)) % 1.25;
+        const rad =
+          (wisp.rad + ((now - started) / 1000) * wisp.speed * (0.5 + speed * 0.55)) % 1.3;
         const x = cx + Math.cos(wisp.ang) * rad * maxR;
         const y = cy + Math.sin(wisp.ang) * rad * maxR * 0.94;
-        const scale = wisp.size * (0.45 + rad * 1.35);
-        const fade = Math.sin(Math.min(1, rad / 1.1) * Math.PI);
-        ctx.globalAlpha = Math.max(0, fade * 0.16);
+        const scale = wisp.size * (0.5 + rad * 1.5);
+        const fade = Math.sin(Math.min(1, rad / 1.25) * Math.PI);
+        ctx.globalAlpha = Math.max(0, fade * 0.2);
         ctx.drawImage(sprites[wisp.sprite], x - scale / 2, y - scale / 2, scale, scale);
       }
 
-      /* 웜홀 링 — 중심에서 퍼져 나가는 얇은 원 */
+      /* 웜홀 링 — 중심에서 퍼져 나가는 가는 원 */
       ctx.lineWidth = 1;
+      ctx.strokeStyle = "rgba(178,198,255,1)";
       for (let i = 0; i < 5; i += 1) {
-        const phase = ((now - started) / 1800 + i / 5) % 1;
-        const radius = Math.pow(phase, 1.7) * maxR * 1.15;
-        const alpha = Math.pow(1 - phase, 2.1) * 0.3;
-        if (alpha <= 0.004) continue;
+        const phase = (((now - started) / 2100 + i / 5) % 1 + 1) % 1;
+        const radius = Math.pow(phase, 1.6) * maxR * 1.2;
+        const alpha = Math.pow(1 - phase, 2) * 0.34;
+        if (alpha < 0.005) continue;
         ctx.globalAlpha = alpha;
-        ctx.strokeStyle = "rgba(176,198,255,1)";
         ctx.beginPath();
-        ctx.ellipse(cx, cy, radius, radius * 0.94, spin * 0.6, 0, Math.PI * 2);
+        ctx.ellipse(cx, cy, radius, radius * 0.93, spin * 0.5, 0, Math.PI * 2);
         ctx.stroke();
       }
 
-      /* 별가루 — 원근 투영으로 길게 늘어나는 궤적 */
+      /* 별가루 — 원근 투영 + 잔상이 길게 늘어난다 */
       ctx.lineCap = "round";
-      for (const star of stars) {
-        const prev = star.rad;
+      for (let i = 0; i < stars.length; i += 1) {
+        const star = stars[i];
         if (!reduce) {
-          star.rad +=
-            (0.3 + Math.pow(star.rad, 1.45) * 3.4) * speed * (0.55 + star.depth) * step;
-          star.ang += spin * step * 0.5;
+          star.rad += (0.22 + Math.pow(star.rad, 1.25) * 2.2) * speed * (0.55 + star.depth) * step;
+          star.ang += spin * step * 0.35;
         }
-        if (star.rad > 1.22) {
-          Object.assign(star, seedStar({ rad: 0.03 + Math.random() * 0.06 }));
+        if (star.rad > 1.18) {
+          Object.assign(star, seed(0.02 + Math.random() * 0.08));
+          trail.delete(i);
           continue;
         }
-        const ca = Math.cos(star.ang);
-        const sa = Math.sin(star.ang);
-        const r1 = prev * maxR;
-        const r2 = star.rad * maxR;
-        const x1 = cx + ca * r1;
-        const y1 = cy + sa * r1 * 0.96;
-        const x2 = cx + ca * r2;
-        const y2 = cy + sa * r2 * 0.96;
+        const x = cx + Math.cos(star.ang) * star.rad * maxR;
+        const y = cy + Math.sin(star.ang) * star.rad * maxR * 0.94;
+        const prev = trail.get(i);
+        trail.set(i, { x, y });
 
-        const alpha = Math.min(0.95, 0.14 + star.rad * 1.05) * (0.34 + star.depth * 0.66);
+        const alpha = Math.min(1, 0.3 + star.rad * 1.25) * (0.4 + star.depth * 0.6);
         ctx.globalAlpha = alpha;
         ctx.strokeStyle = `rgba(${TINTS[star.tint]},1)`;
-        ctx.lineWidth = 0.65 + star.rad * 2.1 * star.w;
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
+        ctx.lineWidth = 0.9 + star.rad * 2.6 * star.w;
+        if (prev && Math.hypot(x - prev.x, y - prev.y) < 90) {
+          ctx.beginPath();
+          ctx.moveTo(prev.x, prev.y);
+          ctx.lineTo(x, y);
+          ctx.stroke();
+        }
+        /* 별의 머리 — 점 하나가 빛나며 지나간다 */
+        if (star.rad > 0.08) {
+          ctx.beginPath();
+          ctx.arc(x, y, 0.5 + star.rad * 1.5 * star.w, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${TINTS[star.tint]},1)`;
+          ctx.fill();
+        }
       }
 
-      /* 코어 — 빨려 들어갈수록 하얗게 타오른다 */
-      const flare = Math.pow(progress, 2.4);
-      const coreSize = maxR * (0.32 + flare * 1.5);
-      if (core) {
-        ctx.globalAlpha = 0.12 + flare * 0.5;
-        ctx.drawImage(core, cx - coreSize / 2, cy - coreSize / 2, coreSize, coreSize);
-      }
-
-      ctx.globalCompositeOperation = "source-over";
-      ctx.globalAlpha = 1;
-      if (vignette) {
-        ctx.fillStyle = vignette;
-        ctx.fillRect(0, 0, width, height);
-      }
+      /* 코어 — 빨려 들어갈수록 하얗게 타오르는 중심 */
+      const flare = Math.pow(progress, 2.2);
+      const coreSize = maxR * (0.5 + flare * 1.7);
+      ctx.globalAlpha = 0.16 + flare * 0.55;
+      ctx.drawImage(core, cx - coreSize / 2, cy - coreSize / 2, coreSize, coreSize);
 
       /* 마지막 한순간 — 빛 속으로 사라진다 */
-      if (!reduce && progress > 0.86) {
-        ctx.fillStyle = `rgba(238,242,255,${Math.min(0.82, (progress - 0.86) / 0.14 * 0.82)})`;
+      if (!reduce && progress > 0.88) {
+        ctx.globalCompositeOperation = "source-over";
+        ctx.globalAlpha = Math.min(0.7, ((progress - 0.88) / 0.12) * 0.7);
+        ctx.fillStyle = "rgba(233,238,255,1)";
         ctx.fillRect(0, 0, width, height);
       }
 
+      ctx.globalAlpha = 1;
       if (!reduce) raf = requestAnimationFrame(draw);
     };
 
