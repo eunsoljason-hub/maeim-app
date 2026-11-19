@@ -32,7 +32,7 @@ export function MeditationScreen() {
           <section
             key={bucket.id}
             className="med-block"
-            aria-label={`${bucket.label} ${t("med.title")}`}
+            aria-label={`${bucket.minutes === null ? t("med.bucket.timer") : `${bucket.minutes}${t("common.min")}`} ${t("med.title")}`}
           >
             <div className="med-head">
               <span className="med-num">
@@ -40,9 +40,7 @@ export function MeditationScreen() {
                 {bucket.minutes === null ? "" : <i>{t("common.min")}</i>}
               </span>
               <span className="med-head-txt">
-                <b>
-                  {bucket.minutes === null ? t("med.bucket.timer") : `${bucket.minutes} ${t("common.min")}`}
-                </b>
+                <b>{t("med.title")}</b>
                 <span>{t(`med.bucket.${bucket.id}`)}</span>
               </span>
               <span className="med-glyph" aria-hidden="true">
