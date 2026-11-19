@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useApp } from "@/components/providers/AppProvider";
 import { Sheet } from "@/components/ui/Sheet";
-import { LifeDirectionBanner } from "@/components/practice/LifeDirectionBanner";
 import { LangSwitch } from "@/components/i18n/LangSwitch";
 import {
   loadSessions,
@@ -258,7 +257,6 @@ export function AffirmationsScreen() {
 
   return (
     <main className="page aff-page">
-      <LifeDirectionBanner />
       <header className="view-head">
         <div>
           <p className="eyebrow">{t("aff.eyebrow")}</p>

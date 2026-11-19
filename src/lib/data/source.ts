@@ -45,10 +45,17 @@ export interface NewNoteInput {
   nextStep: string;
 }
 
+export interface DiaryPatch {
+  mood?: MoodId;
+  text?: string;
+  intensity?: number;
+}
+
 export interface DataSource {
   readonly mode: StoreMode;
   load(): Promise<Snapshot>;
   addDiary(input: NewDiaryInput): Promise<DiaryEntry>;
+  updateDiary(id: string, patch: DiaryPatch): Promise<DiaryEntry>;
   deleteDiary(id: string): Promise<void>;
   addPlay(courseId: string, minutes: number, seconds?: number): Promise<PlayRecord>;
   setSlotStatus(slot: Pick<Slot, "id" | "dateKey" | "time" | "minutes">, status: SlotStatus): Promise<void>;

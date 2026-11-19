@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { LifeDirectionBanner } from "@/components/practice/LifeDirectionBanner";
 import { LangSwitch } from "@/components/i18n/LangSwitch";
 import { MEDITATION_BUCKETS, meditationCoursesFor } from "@/lib/constants";
 import { courseText } from "@/lib/i18n/courses";
@@ -12,7 +11,6 @@ export function MeditationScreen() {
 
   return (
     <main className="page">
-      <LifeDirectionBanner />
       <header className="view-head">
         <div>
           <p className="eyebrow">{t("med.eyebrow")}</p>

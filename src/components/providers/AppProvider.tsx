@@ -72,6 +72,10 @@ interface AppContextValue {
     sessionLabel?: string;
     text: string;
   }) => Promise<DiaryEntry>;
+  updateDiary: (
+    id: string,
+    patch: { mood?: MoodId; text?: string; intensity?: number },
+  ) => Promise<DiaryEntry>;
   removeDiary: (id: string) => Promise<void>;
   recordPlay: (courseId: string, minutes: number, seconds?: number) => Promise<void>;
   setSlotStatus: (
@@ -332,6 +336,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [getSource],
   );
 
+  const updateDiary = useCallback(
+    async (id: string, patch: { mood?: MoodId; text?: string; intensity?: number }) => {
+      const source = getSource();
+      const entry = await source.updateDiary(id, patch);
+      setSnapshot((prev) => ({
+        ...prev,
+        diaries: prev.diaries.map((d) => (d.id === id ? entry : d)),
+      }));
+      return entry;
+    },
+    [getSource],
+  );
+
   const removeDiary = useCallback(
     async (id: string) => {
       const source = getSource();
@@ -469,6 +486,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       toast,
       setPrefs,
       saveDiary,
+      updateDiary,
       removeDiary,
       recordPlay,
       setSlotStatus,
@@ -491,6 +509,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       toast,
       setPrefs,
       saveDiary,
+      updateDiary,
       removeDiary,
       recordPlay,
       setSlotStatus,

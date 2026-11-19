@@ -1,69 +1,11 @@
 import type { PlayRecord } from "./types";
 
-/** 누적 시간 구간 (분). 0 · 10h · 30h · 100h · 200h · 300h · 500h */
-export const LEVEL_THRESHOLD_MINUTES = [0, 600, 1800, 6000, 12000, 18000, 30000] as const;
-
-export type LevelThemeId = "inyou" | "cosmic" | "english";
-
-export interface LevelTheme {
-  id: LevelThemeId;
-  label: string;
-  hint: string;
-  names: string[];
-}
-
-/**
- * 레벨 이름 테마 3안.
- * 기본값은 인유 브랜드형('씨앗 → 내면의 우주')이고, 사용자가 바꿀 수 있다.
- */
-export const LEVEL_THEMES: LevelTheme[] = [
-  {
-    id: "inyou",
-    label: "인유 브랜드형",
-    hint: "씨앗에서 내면의 우주까지",
-    names: ["씨앗", "새싹", "뿌리", "나무", "숲", "정원", "내면의 우주"],
-  },
-  {
-    id: "cosmic",
-    label: "우주·시적형",
-    hint: "별먼지에서 영혼의 항해자까지",
-    names: [
-      "별먼지",
-      "별빛",
-      "성운",
-      "은하",
-      "성좌",
-      "초월자",
-      "영혼의 항해자",
-    ],
-  },
-  {
-    id: "english",
-    label: "영어·명상 직관형",
-    hint: "Beginner → Awakened Soul",
-    names: [
-      "비기너",
-      "시커",
-      "메디테이터",
-      "프랙티셔너",
-      "마스터",
-      "어웨이큰",
-      "어웨이큰드 소울",
-    ],
-  },
-];
-
-export const LEVEL_THEME_KEY = "maeum.level.theme.v1";
-export const DEFAULT_LEVEL_THEME: LevelThemeId = "inyou";
-
-export function levelThemeById(id: string | null | undefined): LevelTheme {
-  return LEVEL_THEMES.find((theme) => theme.id === id) ?? LEVEL_THEMES[0];
-}
+/** 누적 수행 시간 구간 (분) — 0 · 10h · 50h · 150h · 300h */
+export const LEVEL_THRESHOLD_MINUTES = [0, 600, 3000, 9000, 18000] as const;
 
 export interface LevelState {
-  /** 1부터 시작하는 레벨 번호 */
+  /** 1부터 시작하는 레벨 번호 (1 비기너 ~ 5 마스터) */
   level: number;
-  name: string;
   /** 다음 레벨까지 남은 분 (최고 레벨이면 null) */
   remainingMinutes: number | null;
   /** 현재 구간에서의 진행률 0~1 */
@@ -74,11 +16,12 @@ export interface LevelState {
   nextMinutes: number | null;
 }
 
-export function levelForMinutes(
-  totalMinutes: number,
-  themeId: LevelThemeId = DEFAULT_LEVEL_THEME,
-): LevelState {
-  const theme = levelThemeById(themeId);
+/**
+ * 단일 5단계 레벨 체계.
+ * Lv.1 비기너(0~10h) · 시커(10~50h) · 딥다이버(50~150h) · 어웨이큰(150~300h) · 마스터(300h+).
+ * 이름은 i18n `level.1` ~ `level.5`에서 가져온다.
+ */
+export function levelForMinutes(totalMinutes: number): LevelState {
   const total = Math.max(0, totalMinutes);
   let index = 0;
   for (let i = 0; i < LEVEL_THRESHOLD_MINUTES.length; i += 1) {
@@ -90,7 +33,6 @@ export function levelForMinutes(
     next === null ? 1 : Math.min(1, Math.max(0, (total - floor) / (next - floor)));
   return {
     level: index + 1,
-    name: theme.names[index] ?? theme.names[theme.names.length - 1],
     remainingMinutes: next === null ? null : Math.max(0, Math.ceil(next - total)),
     progress,
     floorMinutes: floor,

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { LangSwitch } from "@/components/i18n/LangSwitch";
-import { LifeDirectionBanner } from "@/components/practice/LifeDirectionBanner";
 import { ReminderSettingsPanel } from "@/components/studio/ReminderSettings";
 import { WidgetStudio } from "@/components/studio/WidgetStudio";
 import { useI18n } from "@/lib/i18n/LangProvider";
@@ -43,7 +42,6 @@ export function StudioScreen() {
 
   return (
     <main className="page studio-page">
-      <LifeDirectionBanner />
       <header className="view-head">
         <div>
           <p className="eyebrow">{t("studio.eyebrow")}</p>

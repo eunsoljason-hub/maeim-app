@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { LifeDirectionBanner } from "@/components/practice/LifeDirectionBanner";
 import { LifeHexagon } from "@/components/growth/LifeHexagon";
 import { LifeRoadmap } from "@/components/growth/LifeRoadmap";
 import { Mandalart } from "@/components/growth/Mandalart";
@@ -38,7 +37,6 @@ export function GrowthScreen() {
 
   return (
     <main className="page growth-page">
-      <LifeDirectionBanner />
       <header className="view-head">
         <div>
           <p className="eyebrow">{t("growth.eyebrow")}</p>

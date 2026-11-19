@@ -13,6 +13,7 @@ import type {
 } from "../types";
 import {
   type DataSource,
+  type DiaryPatch,
   type NewBookingInput,
   type NewDiaryInput,
   type NewNoteInput,
@@ -192,6 +193,21 @@ export class SupabaseDataSource implements DataSource {
       .select("*")
       .single();
     if (error || !data) fail("일기를 저장하지 못했어요", error);
+    return asDiary(data as Row);
+  }
+
+  async updateDiary(id: string, patch: DiaryPatch): Promise<DiaryEntry> {
+    const { data, error } = await this.client
+      .from("diaries")
+      .update({
+        ...(patch.mood ? { mood: patch.mood } : {}),
+        ...(typeof patch.text === "string" ? { text: patch.text } : {}),
+        ...(typeof patch.intensity === "number" ? { intensity: patch.intensity } : {}),
+      })
+      .eq("id", id)
+      .select("*")
+      .single();
+    if (error || !data) fail("일기를 고치지 못했어요", error);
     return asDiary(data as Row);
   }
 

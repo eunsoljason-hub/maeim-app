@@ -1,35 +1,32 @@
 "use client";
 
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useApp } from "@/components/providers/AppProvider";
-import { PracticeStatsCard } from "@/components/practice/PracticeStatsCard";
-import { LifeDirectionBanner } from "@/components/practice/LifeDirectionBanner";
 import { LangSwitch } from "@/components/i18n/LangSwitch";
 import { MonthAgoCard } from "@/components/diary/MonthAgoCard";
+import { Sheet } from "@/components/ui/Sheet";
 import { MOODS, moodById } from "@/lib/constants";
 import { dateKey } from "@/lib/date";
-import { ENERGY_LABELS, loadTodayCheckIn } from "@/lib/checkin";
-import { useI18n, formatDateKey, formatDateShort, weekdayNarrow } from "@/lib/i18n/LangProvider";
+import { loadTodayCheckIn } from "@/lib/checkin";
+import { useI18n, formatDateKey, formatDateShort } from "@/lib/i18n/LangProvider";
 import { moodLabel } from "@/lib/i18n/labels";
-import { weekMoodStrip } from "@/lib/briefing";
+import { monthMoodStrip } from "@/lib/briefing";
 import {
   EMPTY_EXTRAS,
   MAX_MEDIA_PER_ENTRY,
   loadExtrasMap,
   mediaObjectUrl,
-  newLocalId,
-  normalizeUrl,
   prepareAudioBlob,
   prepareMediaFile,
   removeDiaryExtras,
   saveDiaryExtras,
   deleteMediaBlob,
   type DiaryExtras,
-  type DiaryLink,
   type DiaryMediaMeta,
 } from "@/lib/media";
-import type { DiaryMoment, MoodId } from "@/lib/types";
+import type { DiaryEntry, DiaryMoment, MoodId } from "@/lib/types";
 
 interface SessionContext {
   type: string;
@@ -72,12 +69,11 @@ function readSessionContext(params: URLSearchParams): SessionContext | null {
 }
 
 export function DiaryScreen() {
-  const { diaries, saveDiary, removeDiary, mode, hydrated, toast } = useApp();
+  const { diaries, saveDiary, updateDiary, removeDiary, mode, hydrated, toast } = useApp();
   const { t, lang } = useI18n();
 
   const [moment, setMoment] = useState<DiaryMoment>("after");
   const [mood, setMood] = useState<MoodId | null>(null);
-  const [intensity, setIntensity] = useState(3);
   const [energy, setEnergy] = useState(3);
   const [text, setText] = useState("");
   const [saving, setSaving] = useState(false);
@@ -87,16 +83,22 @@ export function DiaryScreen() {
   const incomingApplied = useRef(false);
 
   const [session, setSession] = useState<SessionContext | null>(null);
-  const [links, setLinks] = useState<DiaryLink[]>([]);
   const [media, setMedia] = useState<DiaryMediaMeta[]>([]);
-  const [linkInput, setLinkInput] = useState("");
-  const [linkLabel, setLinkLabel] = useState("");
   const [uploading, setUploading] = useState(false);
   const [recording, setRecording] = useState(false);
   const [recordSeconds, setRecordSeconds] = useState(0);
   const [extrasMap, setExtrasMap] = useState<Record<string, DiaryExtras>>({});
   const [audioTick, setAudioTick] = useState(0);
   const [voiceSupported, setVoiceSupported] = useState(true);
+
+  /* 지난 기록 고치기 */
+  const [editEntry, setEditEntry] = useState<DiaryEntry | null>(null);
+  const [editMood, setEditMood] = useState<MoodId | null>(null);
+  const [editText, setEditText] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+
+  /* 사진·영상 확대 보기 */
+  const [preview, setPreview] = useState<DiaryMediaMeta | null>(null);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -147,25 +149,12 @@ export function DiaryScreen() {
     setExtrasMap(loadExtrasMap());
   }, []);
 
-  const week = useMemo(() => (hydrated ? weekMoodStrip(diaries) : []), [diaries, hydrated]);
+  const month = useMemo(() => (hydrated ? monthMoodStrip(diaries) : []), [diaries, hydrated]);
+  const monthDays = month.filter((day) => day.mood).length;
   const sorted = useMemo(
     () => [...diaries].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
     [diaries],
   );
-
-  const addLink = () => {
-    const normalized = normalizeUrl(linkInput);
-    if (!normalized) {
-      toast(t("diary.linkInvalid"));
-      return;
-    }
-    setLinks((prev) => [
-      ...prev,
-      { id: newLocalId("link"), url: normalized, label: linkLabel.trim() },
-    ]);
-    setLinkInput("");
-    setLinkLabel("");
-  };
 
   const onPickFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -274,13 +263,8 @@ export function DiaryScreen() {
   const resetDraft = () => {
     setMood(null);
     setText("");
-    setIntensity(3);
-    setMoment("after");
     setSession(null);
-    setLinks([]);
     setMedia([]);
-    setLinkInput("");
-    setLinkLabel("");
   };
 
   const onSave = async () => {
@@ -295,13 +279,13 @@ export function DiaryScreen() {
       const entry = await saveDiary({
         moment,
         mood,
-        intensity,
+        intensity: 3,
         energy,
         sessionLabel: session ? t(session.type) : undefined,
         text,
       });
-      const extras: DiaryExtras = { links, media };
-      if (links.length || media.length) {
+      if (media.length) {
+        const extras: DiaryExtras = { links: [], media };
         const stored = saveDiaryExtras(entry.id, extras);
         if (!stored) toast(t("diary.extrasFull"));
         setExtrasMap(loadExtrasMap());
@@ -313,6 +297,37 @@ export function DiaryScreen() {
       toast(error instanceof Error ? error.message : t("diary.saving"));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const openEdit = (entry: DiaryEntry) => {
+    setEditEntry(entry);
+    setEditMood(entry.mood);
+    setEditText(entry.text ?? "");
+  };
+
+  const closeEdit = () => {
+    setEditEntry(null);
+    setEditMood(null);
+    setEditText("");
+  };
+
+  const saveEdit = async () => {
+    if (!editEntry) return;
+    if (!editMood) {
+      toast(t("diary.needMood"));
+      return;
+    }
+    if (editSaving) return;
+    setEditSaving(true);
+    try {
+      await updateDiary(editEntry.id, { mood: editMood, text: editText.trim() });
+      toast(t("diary.editSaved"));
+      closeEdit();
+    } catch (error) {
+      toast(error instanceof Error ? error.message : t("diary.saving"));
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -354,21 +369,15 @@ export function DiaryScreen() {
 
   return (
     <main className="page">
-      <LifeDirectionBanner />
       <header className="view-head">
         <div>
-          <p className="eyebrow">{t("diary.eyebrow")}</p>
-          <h1>{t("diary.title")}</h1>
+          <p className="eyebrow">{t("diary.title")}</p>
+          <h1>{t("diary.today")}</h1>
         </div>
         <div className="view-head-right">
           <LangSwitch />
-          <span className="tag">{t("diary.count", { n: diaries.length })}</span>
         </div>
       </header>
-
-      <PracticeStatsCard compact />
-
-      <MonthAgoCard diaries={diaries} todayMood={mood} todayEnergy={energy} />
 
       {session ? (
         <div className="session-done">
@@ -380,10 +389,7 @@ export function DiaryScreen() {
       ) : null}
 
       <div className="today-head">
-        <div>
-          <p className="eyebrow">{t("diary.today")}</p>
-          <b>{formatDateKey(dateKey(), lang)}</b>
-        </div>
+        <p className="eyebrow">{formatDateKey(dateKey(), lang)}</p>
         <span className="tiny">{t("diary.todayHint")}</span>
       </div>
 
@@ -407,48 +413,6 @@ export function DiaryScreen() {
               <span className="l">{moodLabel(item.id, t)}</span>
             </button>
           ))}
-        </div>
-
-        <div className="form-label" style={{ marginTop: 18 }}>
-          <span>{t("diary.intensity")}</span>
-          <span className="tiny">{intensity}/5</span>
-        </div>
-        <div className="intensity" role="group" aria-label={t("diary.intensity")}>
-          {[1, 2, 3, 4, 5].map((value) => (
-            <button
-              key={value}
-              type="button"
-              className={`dot ${intensity === value ? "on" : ""}`}
-              onClick={() => setIntensity(value)}
-              aria-pressed={intensity === value}
-              aria-label={`${t("diary.intensity")} ${value}`}
-            >
-              {value}
-            </button>
-          ))}
-          <span className="scale-note">{t("diary.intensityScale")}</span>
-        </div>
-
-        <div className="form-label" style={{ marginTop: 18 }}>
-          <span>{t("diary.energy")}</span>
-          <span className="tiny">
-            {energy}/5 · {t(`energy.${energy}`)}
-          </span>
-        </div>
-        <div className="intensity" role="group" aria-label={t("diary.energy")}>
-          {[1, 2, 3, 4, 5].map((value) => (
-            <button
-              key={value}
-              type="button"
-              className={`dot ${energy === value ? "on" : ""}`}
-              onClick={() => setEnergy(value)}
-              aria-pressed={energy === value}
-              aria-label={`${t("diary.energy")} ${value}`}
-            >
-              {value}
-            </button>
-          ))}
-          <span className="scale-note">{t("diary.energyScale")}</span>
         </div>
 
         <div className="form-label" style={{ marginTop: 18 }}>
@@ -509,47 +473,6 @@ export function DiaryScreen() {
         </div>
 
         <div className="form-label" style={{ marginTop: 20 }}>
-          <span>{t("diary.links")}</span>
-          <span className="tiny">{links.length}</span>
-        </div>
-        <div className="link-form">
-          <input
-            value={linkInput}
-            onChange={(event) => setLinkInput(event.target.value)}
-            placeholder={t("diary.linkPh")}
-            inputMode="url"
-            aria-label={t("diary.links")}
-          />
-          <input
-            value={linkLabel}
-            onChange={(event) => setLinkLabel(event.target.value)}
-            placeholder={t("diary.linkLabelPh")}
-            aria-label={t("diary.linkLabelPh")}
-          />
-          <button type="button" className="btn sage-wash" onClick={addLink}>
-            {t("diary.linkAdd")}
-          </button>
-        </div>
-        {links.length > 0 ? (
-          <ul className="link-list">
-            {links.map((link) => (
-              <li key={link.id}>
-                <a href={link.url} target="_blank" rel="noreferrer noopener">
-                  {link.label || link.url}
-                </a>
-                <button
-                  type="button"
-                  onClick={() => setLinks((prev) => prev.filter((item) => item.id !== link.id))}
-                  aria-label={t("common.delete")}
-                >
-                  ✕
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-
-        <div className="form-label" style={{ marginTop: 20 }}>
           <span>{t("diary.media")}</span>
           <span className="tiny">
             {t("diary.mediaHint", {
@@ -578,7 +501,12 @@ export function DiaryScreen() {
         {media.length > 0 ? (
           <div className="media-grid" key={audioTick}>
             {media.map((item) => (
-              <MediaPreview key={item.id} meta={item} onRemove={() => removeMedia(item)} />
+              <MediaPreview
+                key={item.id}
+                meta={item}
+                onRemove={() => removeMedia(item)}
+                onOpen={() => setPreview(item)}
+              />
             ))}
           </div>
         ) : null}
@@ -598,32 +526,31 @@ export function DiaryScreen() {
         </span>
       </div>
 
-      {week.length > 0 && (
-        <div className="card week" style={{ marginBottom: 10 }} aria-label={t("diary.week")}>
-          <div className="week-row">
-            {week.map((day) => {
-              const item = day.mood ? moodById(day.mood) : null;
-              return (
-                <div
-                  key={day.key}
-                  className={`day ${item ? "has" : ""} ${day.isToday ? "today" : ""}`}
-                >
-                  <div className="d">{weekdayNarrow(day.key, lang)}</div>
-                  <div className="m" aria-hidden="true">
-                    {item ? item.emoji : "·"}
+      <div className="card month30" aria-label={t("diary.week")}>
+        {month.length > 0 ? (
+          <>
+            <div className="month30-grid">
+              {month.map((day) => {
+                const item = day.mood ? moodById(day.mood) : null;
+                return (
+                  <div
+                    key={day.key}
+                    className={`m30 ${item ? "has" : ""} ${day.isToday ? "today" : ""}`}
+                    title={`${day.day}${item ? ` · ${moodLabel(item.id, t)}` : ""}`}
+                  >
+                    {item ? <span aria-hidden="true">{item.emoji}</span> : <span className="none" />}
                   </div>
-                  <div className="n">{day.day}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      <div className="empty" style={{ marginTop: 4 }}>
-        <span className="e">🌱</span>
-        {week.some((day) => day.mood) ? t("diary.foot") : t("diary.briefingEmpty")}
+                );
+              })}
+            </div>
+            <p className="month30-foot">{t("diary.month30Count", { days: monthDays })}</p>
+          </>
+        ) : (
+          <p className="month30-foot">{t("diary.briefingEmpty")}</p>
+        )}
       </div>
+
+      <MonthAgoCard diaries={diaries} />
 
       <div className="section-head">
         <h2>{t("diary.entries")}</h2>
@@ -648,28 +575,38 @@ export function DiaryScreen() {
               <article key={entry.id} className="entry">
                 <button
                   type="button"
+                  className="entry-edit"
+                  onClick={() => openEdit(entry)}
+                  aria-label={t("diary.editTitle")}
+                >
+                  ✎
+                </button>
+                <button
+                  type="button"
                   className={`del ${confirmId === entry.id ? "confirm" : ""}`}
                   onClick={() => onDelete(entry.id)}
                   aria-label={t("common.delete")}
                 >
                   {confirmId === entry.id ? t("diary.deleteConfirm") : "✕"}
                 </button>
-                <div className="entry-top">
-                  <span className="badge after">{entry.sessionLabel ?? t("diary.today")}</span>
-                  <span className="when">
-                    {formatDateShort(entry.date, lang)} {hhmm}
-                  </span>
-                </div>
-                <div className="moodline">
-                  <span className="e" aria-hidden="true">
-                    {item.emoji}
-                  </span>
-                  {moodLabel(item.id, t)}
-                  <span className="tiny" style={{ fontWeight: 500, marginLeft: 4 }}>
-                    {t("month.intensity", { n: entry.intensity })}
-                  </span>
-                </div>
-                {entry.text ? <p className="body">{entry.text}</p> : null}
+                <button type="button" className="entry-open" onClick={() => openEdit(entry)}>
+                  <div className="entry-top">
+                    <span className="badge after">{entry.sessionLabel ?? t("diary.today")}</span>
+                    <span className="when">
+                      {formatDateShort(entry.date, lang)} {hhmm}
+                    </span>
+                    {entry.editedAt ? (
+                      <span className="edited">{t("diary.edited")}</span>
+                    ) : null}
+                  </div>
+                  <div className="moodline">
+                    <span className="e" aria-hidden="true">
+                      {item.emoji}
+                    </span>
+                    {moodLabel(item.id, t)}
+                  </div>
+                  {entry.text ? <p className="body">{entry.text}</p> : null}
+                </button>
 
                 {extras.links.length > 0 ? (
                   <ul className="entry-links">
@@ -686,7 +623,7 @@ export function DiaryScreen() {
                 {extras.media.length > 0 ? (
                   <div className="entry-media">
                     {extras.media.map((meta) => (
-                      <SavedMedia key={meta.id} meta={meta} />
+                      <SavedMedia key={meta.id} meta={meta} onOpen={() => setPreview(meta)} />
                     ))}
                   </div>
                 ) : null}
@@ -714,14 +651,70 @@ export function DiaryScreen() {
           {t("tab.growth")}
         </Link>
       </p>
+
+      {/* 지난 기록 고치기 */}
+      <Sheet open={Boolean(editEntry)} onClose={closeEdit} labelledBy="entry-edit-title">
+        <h3 id="entry-edit-title">{t("diary.editTitle")}</h3>
+        <p className="lead">
+          {editEntry
+            ? `${formatDateShort(editEntry.date, lang)} · ${t("diary.editHint")}`
+            : t("diary.editHint")}
+        </p>
+        <div className="mood-grid" role="group" aria-label={t("diary.mood")}>
+          {MOODS.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={`mood ${editMood === item.id ? "on" : ""}`}
+              onClick={() => setEditMood(item.id)}
+              aria-pressed={editMood === item.id}
+            >
+              <span className="e" aria-hidden="true">
+                {item.emoji}
+              </span>
+              <span className="l">{moodLabel(item.id, t)}</span>
+            </button>
+          ))}
+        </div>
+        <textarea
+          className="diary-textarea"
+          maxLength={600}
+          value={editText}
+          onChange={(event) => setEditText(event.target.value)}
+          placeholder={t("diary.textPh")}
+          aria-label={t("diary.text")}
+          style={{ marginTop: 12 }}
+        />
+        <p className="fine">{t("diary.editKeepMedia")}</p>
+        <button
+          type="button"
+          className="btn block"
+          onClick={() => void saveEdit()}
+          disabled={editSaving}
+        >
+          {editSaving ? t("diary.saving") : t("common.save")}
+        </button>
+        <button type="button" className="btn block sage-wash" onClick={closeEdit}>
+          {t("common.cancel")}
+        </button>
+      </Sheet>
+
+      <MediaLightbox meta={preview} onClose={() => setPreview(null)} />
     </main>
   );
 }
 
-
 /* ------------------------------ 미리보기 부품 ------------------------------ */
 
-function MediaPreview({ meta, onRemove }: { meta: DiaryMediaMeta; onRemove: () => void }) {
+function MediaPreview({
+  meta,
+  onRemove,
+  onOpen,
+}: {
+  meta: DiaryMediaMeta;
+  onRemove: () => void;
+  onOpen: () => void;
+}) {
   const [url, setUrl] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
 
@@ -754,7 +747,9 @@ function MediaPreview({ meta, onRemove }: { meta: DiaryMediaMeta; onRemove: () =
           <span className="media-fallback">🎙 {failed ? "—" : "…"}</span>
         )
       ) : meta.thumb ? (
-        <img src={meta.thumb} alt={meta.name} />
+        <button type="button" className="media-thumb" onClick={onOpen} aria-label={meta.name}>
+          <img src={meta.thumb} alt={meta.name} />
+        </button>
       ) : (
         <span className="media-fallback">🎞 {meta.name}</span>
       )}
@@ -767,17 +762,8 @@ function MediaPreview({ meta, onRemove }: { meta: DiaryMediaMeta; onRemove: () =
   );
 }
 
-function SavedMedia({ meta }: { meta: DiaryMediaMeta }) {
+function SavedMedia({ meta, onOpen }: { meta: DiaryMediaMeta; onOpen: () => void }) {
   const [url, setUrl] = useState<string | null>(null);
-  const [opening, setOpening] = useState(false);
-
-  const open = async () => {
-    if (meta.kind === "audio") return;
-    setOpening(true);
-    const value = await mediaObjectUrl(meta);
-    setOpening(false);
-    if (value) window.open(value, "_blank", "noopener,noreferrer");
-  };
 
   useEffect(() => {
     if (meta.kind !== "audio") return;
@@ -804,10 +790,86 @@ function SavedMedia({ meta }: { meta: DiaryMediaMeta }) {
   }
 
   return (
-    <button type="button" className={`saved-media ${meta.kind}`} onClick={() => void open()}>
+    <button type="button" className={`saved-media ${meta.kind}`} onClick={onOpen}>
       {meta.thumb ? <img src={meta.thumb} alt={meta.name} /> : <span>🎞</span>}
       {meta.kind === "video" ? <span className="media-play">▶</span> : null}
-      {opening ? <span className="media-opening">…</span> : null}
     </button>
+  );
+}
+
+/**
+ * 사진·영상 확대 보기.
+ * 저장된 원본(IndexedDB Blob 또는 data URL)을 이 화면 안에서 바로 띄운다.
+ * 새 창(window.open)은 모바일에서 차단되거나 빈 화면이 되기 때문에 쓰지 않는다.
+ */
+function MediaLightbox({ meta, onClose }: { meta: DiaryMediaMeta | null; onClose: () => void }) {
+  const { t } = useI18n();
+  const [url, setUrl] = useState<string | null>(null);
+  const [state, setState] = useState<"loading" | "ready" | "failed">("loading");
+
+  useEffect(() => {
+    if (!meta) {
+      setUrl(null);
+      setState("loading");
+      return;
+    }
+    let active = true;
+    let created: string | null = null;
+    setUrl(null);
+    setState("loading");
+    void mediaObjectUrl(meta).then((value) => {
+      if (!active) return;
+      if (!value) {
+        if (meta.thumb) {
+          setUrl(meta.thumb);
+          setState("ready");
+        } else {
+          setState("failed");
+        }
+        return;
+      }
+      created = value.startsWith("blob:") ? value : null;
+      setUrl(value);
+      setState("ready");
+    });
+    return () => {
+      active = false;
+      if (created) URL.revokeObjectURL(created);
+    };
+  }, [meta]);
+
+  useEffect(() => {
+    if (!meta) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [meta, onClose]);
+
+  if (!meta || typeof document === "undefined") return null;
+
+  /* 화면 스크롤 컨테이너의 변형(애니메이션)에 fixed가 갇히지 않도록 body로 포털한다. */
+  return createPortal(
+    <div className="media-lightbox" role="dialog" aria-modal="true" aria-label={meta.name}>
+      <button type="button" className="lightbox-backdrop" onClick={onClose} aria-label={t("common.close")} />
+      <div className="lightbox-body">
+        <button type="button" className="lightbox-x" onClick={onClose} aria-label={t("common.close")}>
+          ✕
+        </button>
+        {state === "ready" && url ? (
+          meta.kind === "video" ? (
+            <video src={url} controls autoPlay playsInline className="lightbox-media" />
+          ) : (
+            <img src={url} alt={meta.name} className="lightbox-media" />
+          )
+        ) : state === "failed" ? (
+          <p className="lightbox-fallback">{meta.name}</p>
+        ) : (
+          <p className="lightbox-fallback">…</p>
+        )}
+      </div>
+    </div>,
+    document.body,
   );
 }

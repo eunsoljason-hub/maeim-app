@@ -14,7 +14,7 @@ import {
   type WidgetSize,
   type WidgetStyle,
 } from "@/lib/studio";
-import { LEVEL_THEME_KEY, levelForMinutes, practiceStats } from "@/lib/stats";
+import { levelForMinutes, practiceStats } from "@/lib/stats";
 
 const STYLES: WidgetStyle[] = ["cream", "night", "cosmic", "gold"];
 const SIZES: WidgetSize[] = ["small", "medium", "large"];
@@ -28,22 +28,15 @@ export function WidgetStudio({
 }) {
   const { t, lang } = useI18n();
   const { plays } = useApp();
-  const [themeId, setThemeId] = useState("inyou");
   const [direction, setDirection] = useState("");
 
   useEffect(() => {
     setDirection(loadDirectionText());
-    try {
-      const stored = window.localStorage.getItem(LEVEL_THEME_KEY);
-      if (stored) setThemeId(stored);
-    } catch {
-      /* ignore */
-    }
   }, []);
 
   const effectiveLang = value.langSet ? value.lang : lang;
   const stats = practiceStats(plays);
-  const level = levelForMinutes(stats.totalMinutes, themeId as "inyou" | "cosmic" | "english");
+  const level = levelForMinutes(stats.totalMinutes);
   const checkIn = loadTodayCheckIn();
   const affirmation = DEFAULT_SESSIONS[0].items[value.affirmationIndex % 30];
 
@@ -52,7 +45,7 @@ export function WidgetStudio({
       direction:
         direction || translate(effectiveLang, "direction.default"),
       affirmation: affirmationTextFor(affirmation, effectiveLang),
-      level: translate(effectiveLang, `level.${themeId}.${level.level}`),
+      level: translate(effectiveLang, `level.${level.level}`),
       today: translate(effectiveLang, "widget.todayMood"),
       total: translate(effectiveLang, "widget.total"),
       cta: translate(effectiveLang, "widget.cta"),
@@ -64,7 +57,7 @@ export function WidgetStudio({
             })
           : translate(effectiveLang, "stats.minutes", { n: Math.round(n) }),
     }),
-    [direction, affirmation, effectiveLang, themeId, level.level],
+    [direction, affirmation, effectiveLang, level.level],
   );
 
   const update = (patch: Partial<WidgetSettings>) => onChange({ ...value, ...patch });

@@ -169,6 +169,27 @@ export function weekMoodStrip(diaries: DiaryEntry[], now: Date = new Date()) {
   });
 }
 
+/** Last 30 days of mood, newest last — the diary's month-at-a-glance strip. */
+export function monthMoodStrip(diaries: DiaryEntry[], now: Date = new Date()) {
+  return Array.from({ length: 30 }, (_, index) => {
+    const offset = index - 29;
+    const key = dateKeyOfOffset(offset, now);
+    const entries = diaries
+      .filter((d) => d.date === key)
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+    const last = entries.at(-1) ?? null;
+    const date = new Date(now);
+    date.setDate(date.getDate() + offset);
+    return {
+      key,
+      isToday: offset === 0,
+      mood: last?.mood ?? null,
+      count: entries.length,
+      day: date.getDate(),
+    };
+  });
+}
+
 export function streakDays(diaries: DiaryEntry[], now: Date = new Date()) {
   const days = new Set(diaries.map((d) => d.date));
   let cursor = new Date(now);

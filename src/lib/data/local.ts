@@ -17,6 +17,7 @@ import type {
 import {
   newId,
   type DataSource,
+  type DiaryPatch,
   type NewBookingInput,
   type NewDiaryInput,
   type NewNoteInput,
@@ -164,6 +165,22 @@ export class LocalDataSource implements DataSource {
     this.snapshot.diaries.push(entry);
     this.persist();
     return entry;
+  }
+
+  async updateDiary(id: string, patch: DiaryPatch): Promise<DiaryEntry> {
+    await this.load();
+    const index = this.snapshot.diaries.findIndex((d) => d.id === id);
+    if (index < 0) throw new Error("기록을 찾지 못했어요");
+    const next: DiaryEntry = {
+      ...this.snapshot.diaries[index],
+      ...(patch.mood ? { mood: patch.mood } : {}),
+      ...(typeof patch.text === "string" ? { text: patch.text } : {}),
+      ...(typeof patch.intensity === "number" ? { intensity: patch.intensity } : {}),
+      editedAt: new Date().toISOString(),
+    };
+    this.snapshot.diaries[index] = next;
+    this.persist();
+    return next;
   }
 
   async deleteDiary(id: string): Promise<void> {

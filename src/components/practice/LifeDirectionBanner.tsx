@@ -68,7 +68,6 @@ export function LifeDirectionBanner({ compact = false }: { compact?: boolean }) 
       className={`direction-banner ${compact ? "compact" : ""}`}
       aria-label={t("direction.label")}
     >
-      <span className="direction-accent" aria-hidden="true" />
       {editing ? (
         <div className="direction-edit">
           <textarea

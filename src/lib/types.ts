@@ -86,6 +86,8 @@ export interface DiaryEntry {
   energy?: number;
   /** 어떤 세션을 마치고 남긴 기록인지. */
   sessionLabel?: string;
+  /** 마지막으로 고쳐 쓴 시각 (없으면 처음 쓴 기록). */
+  editedAt?: string;
   text: string;
 }
 

@@ -2067,11 +2067,11 @@ select {
 .tabbar {
   display: flex;
   align-items: stretch;
-  gap: 2px;
+  gap: 0;
   background: rgba(255, 253, 248, 0.94);
   backdrop-filter: blur(14px);
   border-top: 1px solid var(--line);
-  padding: 7px 8px calc(7px + env(safe-area-inset-bottom));
+  padding: 6px 5px calc(6px + env(safe-area-inset-bottom));
   transition:
     background 0.4s,
     border-color 0.4s;
@@ -2084,8 +2084,8 @@ select {
   align-items: center;
   justify-content: center;
   gap: 3px;
-  height: 48px;
-  border-radius: 14px;
+  height: 46px;
+  border-radius: 12px;
   color: #9a98a2;
   transition:
     color 0.2s,
@@ -2093,8 +2093,8 @@ select {
 }
 
 .tab svg {
-  width: 21px;
-  height: 21px;
+  width: 19px;
+  height: 19px;
   stroke: currentColor;
   fill: none;
   stroke-width: 1.7;
@@ -2103,13 +2103,55 @@ select {
 }
 
 .tab span {
-  font-size: 9.5px;
+  font-size: 8.5px;
   font-weight: 600;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
 }
 
 .tab.on {
   color: var(--sage);
   background: rgba(78, 107, 91, 0.07);
+}
+
+/* 주요 실행 메뉴(시각화 · 명상 · 확언) — 은은한 컬러 필로 묶어 한눈에 구분한다 */
+.tab-core {
+  flex: 3;
+  display: flex;
+  align-items: stretch;
+  gap: 1px;
+  padding: 2px;
+  margin: 0 1px;
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(172, 154, 206, 0.3), rgba(120, 152, 132, 0.24));
+  border: 1px solid rgba(146, 132, 184, 0.24);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.tab-core .tab {
+  flex: 1;
+  height: 42px;
+  border-radius: 12px;
+  color: #5b6480;
+}
+
+.tab-core .tab svg {
+  stroke-width: 1.85;
+  filter: drop-shadow(0 2px 5px rgba(112, 104, 152, 0.32));
+}
+
+.tab-core .tab span {
+  font-size: 8.5px;
+  letter-spacing: -0.015em;
+}
+
+.tab-core .tab.on {
+  color: #3f5a4c;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow:
+    0 4px 12px rgba(112, 104, 152, 0.18),
+    inset 0 0 0 1px rgba(126, 154, 135, 0.16);
 }
 
 .app-shell[data-player="true"] .tabbar {
@@ -2124,6 +2166,22 @@ select {
 .app-shell[data-player="true"] .tab.on {
   color: #f1f5ef;
   background: rgba(255, 255, 255, 0.1);
+}
+
+.app-shell[data-player="true"] .tab-core {
+  background: linear-gradient(135deg, rgba(140, 150, 220, 0.18), rgba(120, 160, 140, 0.16));
+  border-color: rgba(180, 194, 255, 0.16);
+  box-shadow: none;
+}
+
+.app-shell[data-player="true"] .tab-core .tab {
+  color: rgba(226, 234, 255, 0.62);
+}
+
+.app-shell[data-player="true"] .tab-core .tab.on {
+  color: #f1f5ef;
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 0 14px rgba(160, 190, 255, 0.18);
 }
 
 /* ---------------------------------- legal -------------------------------- */
@@ -2349,50 +2407,23 @@ select {
 
 /* ---------------------------- 삶의 방향 배너 ---------------------------- */
 
-/* VISION — 네모난 박스 대신, 은은한 빛과 가는 선으로만 이루어진 글래스 카드 */
+/* VISION — 박스 없이, 볼드 타이포그래피와 가는 선만으로 강조하는 상단 선언 */
 .direction-banner {
   position: relative;
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 15px 16px 16px;
-  margin: -2px 0 8px;
-  border-radius: 20px;
-  overflow: hidden;
-  background:
-    radial-gradient(120% 140% at 8% -30%, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0) 55%),
-    linear-gradient(145deg, rgba(255, 253, 248, 0.72), rgba(247, 242, 233, 0.42) 52%, rgba(234, 230, 244, 0.44));
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  box-shadow:
-    0 18px 40px -24px rgba(74, 64, 45, 0.42),
-    inset 0 1px 0 rgba(255, 255, 255, 0.85);
-  -webkit-backdrop-filter: blur(16px) saturate(120%);
-  backdrop-filter: blur(16px) saturate(120%);
+  padding: 0;
+  margin: 2px 0 18px;
+  background: none;
+  border: 0;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 .direction-banner::after {
-  content: "";
-  position: absolute;
-  inset: auto 0 0 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(122, 114, 166, 0.28), transparent);
-  pointer-events: none;
-}
-
-/* 왼쪽의 가는 세로 빛줄기 */
-.direction-accent {
-  flex: none;
-  width: 1px;
-  align-self: stretch;
-  margin: 1px 0;
-  border-radius: 999px;
-  background: linear-gradient(
-    180deg,
-    rgba(199, 162, 104, 0.75),
-    rgba(122, 114, 166, 0.55) 48%,
-    rgba(78, 107, 91, 0.15)
-  );
-  box-shadow: 0 0 12px rgba(199, 162, 104, 0.35);
+  content: none;
 }
 
 .direction-mark {
@@ -2431,25 +2462,26 @@ select {
   display: block;
   font-size: 9.5px;
   letter-spacing: 0.42em;
-  font-weight: 700;
-  color: rgba(78, 107, 91, 0.78);
+  font-weight: 800;
+  color: rgba(168, 128, 62, 0.9);
   text-transform: uppercase;
 }
 
 .direction-rule {
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, rgba(78, 107, 91, 0.22), rgba(78, 107, 91, 0));
+  background: linear-gradient(90deg, rgba(78, 107, 91, 0.26), rgba(78, 107, 91, 0));
 }
 
 .direction-text {
-  margin-top: 7px;
-  font-size: 14px;
-  line-height: 1.55;
-  font-weight: 600;
-  letter-spacing: -0.015em;
-  color: #2b2d36;
+  margin-top: 6px;
+  font-size: 16.5px;
+  line-height: 1.44;
+  font-weight: 800;
+  letter-spacing: -0.028em;
+  color: #24262f;
   word-break: keep-all;
+  text-wrap: pretty;
 }
 
 .direction-edit {
@@ -2497,21 +2529,19 @@ select {
 
 .direction-edit-btn {
   flex: none;
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
+  margin-top: -2px;
   border-radius: 50%;
   background: transparent;
-  border: 1px solid rgba(38, 40, 47, 0.08);
-  color: rgba(38, 40, 47, 0.32);
-  font-size: 11px;
-  transition:
-    color 0.18s ease,
-    border-color 0.18s ease;
+  border: 0;
+  color: rgba(38, 40, 47, 0.24);
+  font-size: 10.5px;
+  transition: color 0.18s ease;
 }
 
 .direction-edit-btn:active {
   color: var(--sage);
-  border-color: rgba(78, 107, 91, 0.3);
 }
 
 /* ------------------------------- 체크인 ------------------------------- */
@@ -2655,72 +2685,141 @@ select {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* 에너지 레벨 — 좌우 슬라이더 대신 위아래로 쌓인 5단 (위 = 충만) */
+/* 에너지 레벨 — 위(5·충만)에서 아래(1·지침)로 내려가는 세로 5단.
+   각 줄: 번호 · 상태 설명 · 카드 폭의 약 1/3 슬림 게이지.
+   색은 위가 밝은 골드에서 민트·에메랄드, 틸·스카이를 거쳐 아래의
+   저채도 인디고·딥 슬레이트로 식어 가며 에너지의 높낮이를 보여 준다. */
 .energy-stack {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .energy-step {
   display: flex;
   align-items: center;
-  gap: 8px;
-  height: 21px;
+  gap: 9px;
+  width: 100%;
+  height: 24px;
   padding: 0 2px;
   border-radius: 8px;
+  text-align: left;
   transition: background 0.18s ease;
 }
 
 .energy-step .n {
-  width: 9px;
+  width: 10px;
   flex: none;
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
   text-align: center;
-  color: rgba(214, 222, 244, 0.4);
-  transition: color 0.18s ease;
+  color: rgba(214, 222, 244, 0.38);
+  transition:
+    color 0.18s ease,
+    text-shadow 0.18s ease;
+}
+
+.energy-step .lbl {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: rgba(222, 230, 246, 0.52);
+  transition:
+    color 0.18s ease,
+    text-shadow 0.18s ease;
 }
 
 .energy-step .track {
   position: relative;
-  flex: 1;
+  flex: none;
+  width: 96px;
   height: 6px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.07);
   overflow: hidden;
 }
 
 .energy-step .fill {
   position: absolute;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: 0;
   border-radius: 999px;
-  background: linear-gradient(90deg, rgba(199, 212, 255, 0.55), rgba(199, 212, 255, 0.8));
-  opacity: 0;
-  transform: scaleX(0.001);
-  transform-origin: left center;
+  opacity: 0.42;
   transition:
-    opacity 0.2s ease,
-    transform 0.28s cubic-bezier(0.22, 0.8, 0.28, 1);
+    opacity 0.24s ease,
+    box-shadow 0.24s ease;
 }
 
-.energy-step.filled .fill,
-.energy-step.on .fill {
-  opacity: 0.55;
-  transform: scaleX(1);
+/* 레벨별 색 — 길이와 색이 함께 높낮이를 말한다 */
+.energy-step.lv5 {
+  --glow: rgba(255, 205, 112, 0.55);
+  --tint: #ffe3a0;
+}
+.energy-step.lv5 .fill {
+  width: 100%;
+  background: linear-gradient(90deg, #ffeab0 0%, #ffd486 52%, #ffbd5e 100%);
+}
+
+.energy-step.lv4 {
+  --glow: rgba(112, 228, 189, 0.5);
+  --tint: #a9f0d3;
+}
+.energy-step.lv4 .fill {
+  width: 84%;
+  background: linear-gradient(90deg, #cbf7e0 0%, #8ee7c8 52%, #5fd6b2 100%);
+}
+
+.energy-step.lv3 {
+  --glow: rgba(134, 186, 232, 0.5);
+  --tint: #bcdcf5;
+}
+.energy-step.lv3 .fill {
+  width: 67%;
+  background: linear-gradient(90deg, #aee0ea 0%, #8fc2e5 52%, #7fa9db 100%);
+}
+
+.energy-step.lv2 {
+  --glow: rgba(128, 146, 200, 0.45);
+  --tint: #b3bede;
+}
+.energy-step.lv2 .fill {
+  width: 50%;
+  background: linear-gradient(90deg, #98a9d4 0%, #7f8ec5 52%, #6b7ab1 100%);
+}
+
+.energy-step.lv1 {
+  --glow: rgba(104, 120, 160, 0.42);
+  --tint: #9aa3be;
+}
+.energy-step.lv1 .fill {
+  width: 33%;
+  background: linear-gradient(90deg, #707c9e 0%, #585f84 52%, #434b6c 100%);
+}
+
+.energy-step.on {
+  background: rgba(255, 255, 255, 0.07);
 }
 
 .energy-step.on .fill {
   opacity: 1;
-  box-shadow: 0 0 14px rgba(199, 212, 255, 0.55);
-}
-
-.energy-step.on {
-  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 15px var(--glow);
 }
 
 .energy-step.on .n {
-  color: #eaf0ff;
+  color: var(--tint);
+  text-shadow: 0 0 10px var(--glow);
+}
+
+.energy-step.on .lbl {
+  color: #f2f6ff;
+  text-shadow: 0 0 12px var(--glow);
 }
 
 .energy-step:active .fill {
@@ -2945,68 +3044,301 @@ select {
   margin-bottom: 18px;
 }
 
-/* VISION 바로 아래에 붙는 내면 선언 */
-.inner-message {
+/* --------------------------- 내면 우주 오브 --------------------------- */
+
+/* 가운데에서 은은하게 호흡하며 유영하는 오브 · 성운 · 별빛 */
+.inner-orb-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin: 4px 0 2px;
+}
+
+.orb-halo {
   position: relative;
-  overflow: hidden;
-  margin: 0 0 18px;
-  padding: 22px 20px 21px;
-  border-radius: 22px;
-  background:
-    radial-gradient(130% 120% at 15% 0%, #2c3157 0%, #181c33 48%, #0d1020 100%);
-  color: #eef1fb;
-  box-shadow: 0 18px 40px rgba(28, 30, 60, 0.25);
+  display: grid;
+  place-items: center;
+  padding: 16px;
 }
 
-.hub-page-minimal .hub-head {
-  margin: 0 0 16px;
-}
-
-.hub-page-minimal .hub-greeting {
-  margin-top: 8px;
-  font-size: 21px;
-}
-
-.inner-orbit {
+.orb-halo::before {
+  content: "";
   position: absolute;
-  right: -50px;
-  top: -60px;
-  width: 190px;
-  height: 190px;
+  inset: -6%;
   border-radius: 50%;
-  border: 1px solid rgba(180, 194, 255, 0.22);
-  box-shadow:
-    0 0 0 22px rgba(180, 194, 255, 0.05),
-    0 0 0 48px rgba(180, 194, 255, 0.03);
+  background: radial-gradient(
+    circle,
+    rgba(150, 168, 236, 0.34) 0%,
+    rgba(178, 162, 206, 0.18) 42%,
+    rgba(178, 162, 206, 0) 70%
+  );
+  filter: blur(10px);
+  animation: orbHalo 8s ease-in-out infinite;
   pointer-events: none;
 }
 
-.inner-kicker {
-  font-size: 9px;
-  letter-spacing: 0.3em;
-  color: rgba(184, 198, 255, 0.6);
-  font-weight: 700;
+.inner-orb {
+  position: relative;
+  width: 212px;
+  height: 212px;
+  border-radius: 50%;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 30% 22%, rgba(180, 198, 255, 0.5) 0%, rgba(120, 134, 214, 0.4) 18%, rgba(120, 134, 214, 0) 42%),
+    radial-gradient(circle at 74% 78%, rgba(96, 206, 190, 0.28) 0%, rgba(96, 206, 190, 0) 46%),
+    radial-gradient(circle at 68% 30%, rgba(196, 150, 246, 0.3) 0%, rgba(196, 150, 246, 0) 45%),
+    radial-gradient(circle at 50% 50%, #2a2d5c 0%, #1c1f45 42%, #10122c 68%, #070813 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.42),
+    0 26px 52px -26px rgba(30, 34, 82, 0.6),
+    inset 0 -18px 34px rgba(4, 6, 18, 0.7),
+    inset 0 14px 26px rgba(170, 190, 255, 0.12);
+  animation: orbBreath 9s ease-in-out infinite;
 }
 
-.inner-message h2 {
-  position: relative;
-  margin-top: 11px;
-  font-size: 20px;
-  line-height: 1.45;
-  letter-spacing: -0.03em;
+/* 성운 — 화면 안에서 천천히 소용돌이친다 */
+.orb-neb {
+  position: absolute;
+  border-radius: 50%;
+  mix-blend-mode: screen;
+  will-change: transform, opacity;
+}
+
+.orb-neb-a {
+  inset: -14% -6% 26% -18%;
+  background:
+    radial-gradient(circle at 40% 42%, rgba(128, 164, 255, 0.75) 0%, rgba(128, 164, 255, 0) 58%),
+    radial-gradient(circle at 66% 58%, rgba(188, 142, 255, 0.62) 0%, rgba(188, 142, 255, 0) 52%),
+    radial-gradient(circle at 52% 30%, rgba(255, 236, 200, 0.3) 0%, rgba(255, 236, 200, 0) 40%);
+  filter: blur(11px);
+  animation: orbSwimA 28s ease-in-out infinite alternate;
+}
+
+.orb-neb-b {
+  inset: 22% -18% -16% 6%;
+  background:
+    radial-gradient(circle at 44% 48%, rgba(88, 224, 200, 0.55) 0%, rgba(88, 224, 200, 0) 56%),
+    radial-gradient(circle at 62% 38%, rgba(255, 208, 148, 0.4) 0%, rgba(255, 208, 148, 0) 48%),
+    radial-gradient(circle at 34% 66%, rgba(120, 140, 240, 0.45) 0%, rgba(120, 140, 240, 0) 52%);
+  filter: blur(13px);
+  animation: orbSwimB 34s ease-in-out infinite alternate;
+}
+
+/* 별빛 — 두 겹으로 크기와 반짝임을 달리한다 */
+.orb-stars,
+.orb-stars-far {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.orb-stars {
+  background-image:
+    radial-gradient(1.7px 1.7px at 28% 20%, rgba(255, 255, 255, 0.98), transparent),
+    radial-gradient(1.4px 1.4px at 58% 13%, rgba(230, 240, 255, 0.95), transparent),
+    radial-gradient(1.9px 1.9px at 76% 36%, rgba(255, 255, 255, 0.95), transparent),
+    radial-gradient(1.2px 1.2px at 20% 46%, rgba(214, 228, 255, 0.9), transparent),
+    radial-gradient(1.6px 1.6px at 62% 62%, rgba(255, 255, 255, 0.85), transparent),
+    radial-gradient(1.3px 1.3px at 34% 74%, rgba(198, 216, 255, 0.8), transparent),
+    radial-gradient(1.5px 1.5px at 84% 64%, rgba(240, 226, 255, 0.85), transparent);
+  animation: orbTwinkle 5.5s ease-in-out infinite alternate;
+}
+
+.orb-stars-far {
+  background-image:
+    radial-gradient(1px 1px at 44% 28%, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1px 1px at 70% 22%, rgba(226, 236, 255, 0.55), transparent),
+    radial-gradient(1px 1px at 16% 34%, rgba(226, 236, 255, 0.5), transparent),
+    radial-gradient(1px 1px at 52% 48%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1px 1px at 80% 52%, rgba(214, 226, 255, 0.45), transparent),
+    radial-gradient(1px 1px at 26% 62%, rgba(255, 255, 255, 0.4), transparent),
+    radial-gradient(1px 1px at 66% 82%, rgba(226, 236, 255, 0.45), transparent),
+    radial-gradient(1px 1px at 40% 88%, rgba(255, 255, 255, 0.35), transparent);
+  animation: orbTwinkle 8.5s ease-in-out infinite alternate-reverse;
+}
+
+/* 중심의 빛 알갱이 */
+.orb-core {
+  position: absolute;
+  left: 26%;
+  top: 20%;
+  width: 34%;
+  height: 34%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(226, 236, 255, 0.5) 34%,
+    rgba(226, 236, 255, 0) 70%
+  );
+  filter: blur(6px);
+  animation: orbCore 8s ease-in-out infinite;
+}
+
+.orb-ring {
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  border: 1px solid rgba(176, 192, 246, 0.4);
+  box-shadow:
+    0 0 18px rgba(150, 168, 236, 0.28),
+    inset 0 0 22px rgba(176, 192, 246, 0.16);
+  animation: orbHalo 8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.orb-kicker {
+  margin-top: 16px;
+  font-size: 9px;
+  letter-spacing: 0.34em;
   font-weight: 700;
+  color: rgba(78, 107, 91, 0.62);
+  text-transform: uppercase;
+}
+
+.orb-title {
+  margin-top: 9px;
+  max-width: 300px;
+  font-size: 20px;
+  line-height: 1.42;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  color: #22242d;
   word-break: keep-all;
   text-wrap: balance;
 }
 
-.inner-sub {
-  position: relative;
-  margin-top: 9px;
+.orb-sub {
+  margin-top: 7px;
+  max-width: 280px;
   font-size: 11.5px;
   line-height: 1.6;
-  letter-spacing: 0.005em;
-  color: rgba(214, 222, 245, 0.62);
+  color: var(--sub);
   word-break: keep-all;
+}
+
+.orb-checkin {
+  margin-top: 9px;
+  font-size: 9.5px;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+}
+
+/* 카드 아래 작은 유틸리티 줄 */
+.hub-utility {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+  color: var(--muted);
+}
+
+.hub-utility-link {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--sub);
+  text-decoration: underline;
+  text-decoration-color: rgba(38, 40, 47, 0.22);
+  text-underline-offset: 3px;
+}
+
+.hub-utility-link:active {
+  color: var(--sage);
+}
+
+.hub-utility-dot {
+  color: rgba(38, 40, 47, 0.24);
+}
+
+@keyframes orbBreath {
+  0%,
+  100% {
+    transform: scale(1) translateY(0);
+  }
+  50% {
+    transform: scale(1.028) translateY(-3px);
+  }
+}
+
+@keyframes orbHalo {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.025);
+  }
+}
+
+@keyframes orbCore {
+  0%,
+  100% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes orbSwimA {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  100% {
+    transform: translate3d(6%, 4%, 0) rotate(24deg) scale(1.08);
+  }
+}
+
+@keyframes orbSwimB {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1.04);
+  }
+  100% {
+    transform: translate3d(-5%, -4%, 0) rotate(-18deg) scale(1);
+  }
+}
+
+@keyframes orbTwinkle {
+  0% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inner-orb,
+  .orb-halo::before,
+  .orb-core,
+  .orb-ring,
+  .orb-neb,
+  .orb-stars,
+  .orb-stars-far {
+    animation: none;
+  }
+}
+
+@media (max-height: 720px) {
+  .inner-orb {
+    width: 168px;
+    height: 168px;
+  }
+  .orb-halo {
+    padding: 10px;
+  }
+  .orb-title {
+    font-size: 18px;
+  }
 }
 
 .session-grid {
@@ -3242,6 +3574,114 @@ select {
   white-space: nowrap;
 }
 
+/* 레벨 우상단 ⓘ — 5단계 레벨 안내 시트 열기 */
+.practice-info {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  padding: 0 0 1px;
+  border: 1px solid rgba(38, 40, 47, 0.14);
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--muted);
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1;
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.practice-info:active {
+  color: var(--sage);
+  border-color: rgba(78, 107, 91, 0.34);
+}
+
+/* 누적 시간을 카드의 주인공으로 */
+.practice-hero {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.practice-hero b {
+  font-size: 23px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.practice-hero span {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+/* 레벨 안내 시트의 5단계 목록 */
+.level-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 14px 0 18px;
+}
+
+.level-list li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(38, 40, 47, 0.04);
+}
+
+.level-list .lv {
+  flex: none;
+  width: 34px;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.level-list b {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.level-list .rg {
+  flex: none;
+  font-size: 10.5px;
+  color: var(--sub);
+  white-space: nowrap;
+}
+
+.level-list li.on {
+  background: rgba(78, 107, 91, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(78, 107, 91, 0.18);
+}
+
+.level-list .now {
+  flex: none;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--sage);
+  color: #fff;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
 .practice-gauge {
   height: 7px;
   border-radius: 99px;
@@ -3293,30 +3733,6 @@ select {
   margin-top: 2px;
   font-size: 9px;
   color: var(--muted);
-}
-
-.practice-themes {
-  display: flex;
-  gap: 5px;
-  margin-top: 11px;
-  flex-wrap: wrap;
-}
-
-.practice-themes button {
-  height: 26px;
-  padding: 0 9px;
-  border-radius: 999px;
-  font-size: 9.5px;
-  font-weight: 600;
-  color: var(--sub);
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid var(--line);
-}
-
-.practice-themes button.on {
-  background: var(--sage);
-  color: #fff;
-  border-color: transparent;
 }
 
 /* -------------------------------- 명상 -------------------------------- */
@@ -4540,6 +4956,158 @@ select {
   .session-card {
     padding-left: 66px;
   }
+}
+
+/* -------- 기록 탭: 30일 요약 · 지난 기록 고치기 · 사진 확대 보기 -------- */
+
+.month-card .month-past {
+  margin-top: 12px;
+}
+
+.month30 {
+  padding: 14px 13px 12px;
+}
+
+.month30-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
+}
+
+.m30 {
+  aspect-ratio: 1;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  line-height: 1;
+  background: rgba(38, 40, 47, 0.045);
+}
+
+.m30.has {
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(38, 40, 47, 0.07);
+}
+
+.m30.today {
+  box-shadow: inset 0 0 0 1.5px rgba(78, 107, 91, 0.55);
+}
+
+.m30 .none {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(38, 40, 47, 0.14);
+}
+
+.month30-foot {
+  margin-top: 9px;
+  font-size: 10px;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* 지난 기록 — 누르면 고치기 */
+.entry .entry-edit {
+  position: absolute;
+  right: 42px;
+  top: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.entry .entry-edit:active {
+  color: var(--sage);
+}
+
+.entry .entry-open {
+  display: block;
+  width: 100%;
+  padding-right: 64px;
+  text-align: left;
+}
+
+.entry .edited {
+  flex: none;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(38, 40, 47, 0.05);
+  color: var(--muted);
+  font-size: 8.5px;
+  font-weight: 700;
+}
+
+.media-thumb {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.media-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 사진·영상 확대 보기 (새 창 대신 화면 안 라이트박스) */
+.media-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.lightbox-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 10, 16, 0.9);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.lightbox-body {
+  position: relative;
+  display: grid;
+  place-items: center;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.lightbox-media {
+  max-width: min(92vw, 680px);
+  max-height: 76vh;
+  border-radius: 14px;
+  background: #000;
+  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.5);
+}
+
+.lightbox-x {
+  position: absolute;
+  top: -42px;
+  right: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-size: 13px;
+  display: grid;
+  place-items: center;
+}
+
+.lightbox-fallback {
+  color: #e8ecf7;
+  font-size: 12px;
+  padding: 30px;
 }
 
 /* ---------------------- 한 달 전 오늘의 나 (성장 회고) ---------------------- */

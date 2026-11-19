@@ -1,49 +1,38 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useApp } from "@/components/providers/AppProvider";
+import { Sheet } from "@/components/ui/Sheet";
 import { useI18n } from "@/lib/i18n/LangProvider";
 import {
-  DEFAULT_LEVEL_THEME,
-  LEVEL_THEMES,
-  LEVEL_THEME_KEY,
+  LEVEL_THRESHOLD_MINUTES,
   fmtMinutes,
   levelForMinutes,
   practiceStats,
-  type LevelThemeId,
 } from "@/lib/stats";
 
 /**
- * 오늘 / 이번 주 / 총 누적 시간과 누적 시간 레벨을 한 카드에 보여준다.
+ * 현재 레벨과 총 누적 시간, 다음 레벨까지의 게이지를 담은 단정한 카드.
+ * 레벨은 비기너 · 시커 · 딥다이버 · 어웨이큰 · 마스터의 단일 5단계 체계이고,
+ * 오른쪽 위 ⓘ 를 누르면 5단계 구성과 시간 기준을 시트로 안내한다.
  * 세션을 마칠 때마다 plays 기록이 쌓여 자동으로 갱신된다.
  */
 export function PracticeStatsCard({ compact = false }: { compact?: boolean }) {
   const { plays, hydrated } = useApp();
-  const { t, lang } = useI18n();
-  const [themeId, setThemeId] = useState<LevelThemeId>(DEFAULT_LEVEL_THEME);
-
-  useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(LEVEL_THEME_KEY);
-      if (stored === "inyou" || stored === "cosmic" || stored === "english") {
-        setThemeId(stored);
-      }
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  const choose = (id: LevelThemeId) => {
-    setThemeId(id);
-    try {
-      window.localStorage.setItem(LEVEL_THEME_KEY, id);
-    } catch {
-      /* ignore */
-    }
-  };
+  const { t } = useI18n();
+  const [infoOpen, setInfoOpen] = useState(false);
 
   const stats = practiceStats(plays);
-  const level = levelForMinutes(stats.totalMinutes, themeId);
+  const level = levelForMinutes(stats.totalMinutes);
+  const levelName = t(`level.${level.level}`);
+
+  const rangeText = (index: number) => {
+    const floor = LEVEL_THRESHOLD_MINUTES[index] ?? 0;
+    const next = LEVEL_THRESHOLD_MINUTES[index + 1] ?? null;
+    return next === null
+      ? t("stats.rangeMax", { a: Math.round(floor / 60) })
+      : t("stats.range", { a: Math.round(floor / 60), b: Math.round(next / 60) });
+  };
 
   const minutesText = (value: number) => {
     const raw = Math.max(0, value);
@@ -66,13 +55,23 @@ export function PracticeStatsCard({ compact = false }: { compact?: boolean }) {
           </span>
           <div className="practice-level-txt">
             <span className="practice-lv">LV.{level.level}</span>
-            <b>{t(`level.${themeId}.${level.level}`)}</b>
-            <span className="practice-theme-hint">{t(`level.${themeId}.hint`)}</span>
+            <b>{levelName}</b>
+            <span className="practice-theme-hint">{rangeText(level.level - 1)}</span>
           </div>
         </div>
-        <span className="practice-total">
-          {hydrated ? minutesText(stats.totalMinutes) : "–"}
-        </span>
+        <button
+          type="button"
+          className="practice-info"
+          onClick={() => setInfoOpen(true)}
+          aria-label={t("stats.levelInfo")}
+        >
+          i
+        </button>
+      </div>
+
+      <div className="practice-hero">
+        <b>{hydrated ? minutesText(stats.totalMinutes) : "–"}</b>
+        <span>{t("stats.total")}</span>
       </div>
 
       <div className="practice-gauge" aria-hidden="true">
@@ -85,7 +84,7 @@ export function PracticeStatsCard({ compact = false }: { compact?: boolean }) {
           ) : (
             <>
               {t("stats.next", {
-                name: t(`level.${themeId}.${level.level + 1}`),
+                name: t(`level.${level.level + 1}`),
                 time: minutesText(level.remainingMinutes ?? 0),
               })}
             </>
@@ -95,41 +94,23 @@ export function PracticeStatsCard({ compact = false }: { compact?: boolean }) {
         )}
       </p>
 
-      <div className="practice-grid">
-        <div>
-          <b>{hydrated ? minutesText(stats.todayMinutes) : "–"}</b>
-          <span>
-            {t("stats.today")} · {t("stats.sessions", { n: stats.todaySessions })}
-          </span>
-        </div>
-        <div>
-          <b>{hydrated ? minutesText(stats.weekMinutes) : "–"}</b>
-          <span>
-            {t("stats.week")} · {t("stats.sessions", { n: stats.weekSessions })}
-          </span>
-        </div>
-        <div>
-          <b>{hydrated ? minutesText(stats.totalMinutes) : "–"}</b>
-          <span>
-            {t("stats.total")} · {t("stats.sessions", { n: stats.totalSessions })}
-          </span>
-        </div>
-      </div>
-
-      <div className="practice-themes" role="group" aria-label={t("stats.theme")}>
-        {LEVEL_THEMES.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            lang={lang}
-            className={item.id === themeId ? "on" : ""}
-            onClick={() => choose(item.id)}
-            aria-pressed={item.id === themeId}
-          >
-            {t(`level.theme.${item.id}`)}
-          </button>
-        ))}
-      </div>
+      <Sheet open={infoOpen} onClose={() => setInfoOpen(false)} labelledBy="level-guide-title">
+        <h3 id="level-guide-title">{t("stats.levelSheetTitle")}</h3>
+        <p className="lead">{t("stats.levelSheetLead")}</p>
+        <ul className="level-list">
+          {[1, 2, 3, 4, 5].map((n) => (
+            <li key={n} className={n === level.level ? "on" : ""}>
+              <span className="lv">LV.{n}</span>
+              <b>{t(`level.${n}`)}</b>
+              <span className="rg">{rangeText(n - 1)}</span>
+              {n === level.level ? <span className="now">{t("stats.current")}</span> : null}
+            </li>
+          ))}
+        </ul>
+        <button type="button" className="btn block" onClick={() => setInfoOpen(false)}>
+          {t("common.close")}
+        </button>
+      </Sheet>
     </section>
   );
 }

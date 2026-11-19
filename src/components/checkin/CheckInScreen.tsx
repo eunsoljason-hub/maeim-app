@@ -75,7 +75,7 @@ export function CheckInScreen({
         <section className="checkin-block" aria-label={t("checkin.energy")}>
           <div className="checkin-label">
             <span>{t("checkin.energy")}</span>
-            <span className="tiny">{t(`energy.${energy}`)}</span>
+            <span className="tiny">{t("checkin.energyHint")}</span>
           </div>
           <div className="checkin-energy">
             <div
@@ -83,25 +83,29 @@ export function CheckInScreen({
               role="group"
               aria-label={`${t("checkin.energy")} 1-5`}
             >
-              {[5, 4, 3, 2, 1].map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  className={`energy-step ${value === energy ? "on" : ""} ${
-                    value < energy ? "filled" : ""
-                  }`}
-                  onClick={() => setEnergy(value)}
-                  aria-pressed={value === energy}
-                  aria-label={`${value} / 5`}
-                >
-                  <span className="n" aria-hidden="true">
-                    {value}
-                  </span>
-                  <span className="track" aria-hidden="true">
-                    <span className="fill" />
-                  </span>
-                </button>
-              ))}
+              {[5, 4, 3, 2, 1].map((value) => {
+                const label = t(`energy.${value}`);
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`energy-step lv${value} ${value === energy ? "on" : ""}`}
+                    onClick={() => setEnergy(value)}
+                    aria-pressed={value === energy}
+                    aria-label={`${value}/5 · ${label}`}
+                  >
+                    <span className="n" aria-hidden="true">
+                      {value}
+                    </span>
+                    <span className="lbl" aria-hidden="true">
+                      {label}
+                    </span>
+                    <span className="track" aria-hidden="true">
+                      <span className="fill" />
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </section>

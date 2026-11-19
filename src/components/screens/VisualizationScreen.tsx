@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { LifeDirectionBanner } from "@/components/practice/LifeDirectionBanner";
 import { LangSwitch } from "@/components/i18n/LangSwitch";
 import { VISUALIZATION_GROUPS, visualizationCoursesFor } from "@/lib/constants";
 import { bgmById } from "@/lib/data/bgm";
@@ -13,7 +12,6 @@ export function VisualizationScreen() {
 
   return (
     <main className="page">
-      <LifeDirectionBanner />
       <header className="view-head">
         <div>
           <p className="eyebrow">{t("vis.eyebrow")}</p>
