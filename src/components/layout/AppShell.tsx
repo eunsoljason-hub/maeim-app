@@ -6,7 +6,7 @@ import { TabBar, ServiceWorkerRegistrar } from "./TabBar";
 import { Toast } from "./Toast";
 
 const DOC_ROUTES = ["/terms", "/privacy", "/refund"];
-const NO_TAB_ROUTES = ["/login", "/counseling/success", "/counseling/fail"];
+const NO_TAB_ROUTES = ["/login", "/counseling/success", "/counseling/fail", "/meditation/timer"];
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "/";

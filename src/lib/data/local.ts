@@ -156,6 +156,8 @@ export class LocalDataSource implements DataSource {
       moment: input.moment,
       mood: input.mood,
       intensity: input.intensity,
+      energy: input.energy,
+      sessionLabel: input.sessionLabel,
       text: input.text,
     };
     await this.load();
@@ -170,12 +172,13 @@ export class LocalDataSource implements DataSource {
     this.persist();
   }
 
-  async addPlay(courseId: string, minutes: number): Promise<PlayRecord> {
+  async addPlay(courseId: string, minutes: number, seconds?: number): Promise<PlayRecord> {
     const play: PlayRecord = {
       id: newId(),
       userId: null,
       courseId,
       minutes,
+      seconds,
       completedAt: new Date().toISOString(),
     };
     await this.load();

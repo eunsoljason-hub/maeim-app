@@ -200,7 +200,7 @@ export class SupabaseDataSource implements DataSource {
     if (error) fail("일기를 삭제하지 못했어요", error);
   }
 
-  async addPlay(courseId: string, minutes: number): Promise<PlayRecord> {
+  async addPlay(courseId: string, minutes: number, _seconds?: number): Promise<PlayRecord> {
     const { data, error } = await this.client
       .from("plays")
       .insert({

@@ -68,10 +68,12 @@ interface AppContextValue {
     moment: DiaryMoment;
     mood: MoodId;
     intensity: number;
+    energy?: number;
+    sessionLabel?: string;
     text: string;
   }) => Promise<DiaryEntry>;
   removeDiary: (id: string) => Promise<void>;
-  recordPlay: (courseId: string, minutes: number) => Promise<void>;
+  recordPlay: (courseId: string, minutes: number, seconds?: number) => Promise<void>;
   setSlotStatus: (
     slot: Pick<Slot, "id" | "dateKey" | "time" | "minutes">,
     status: SlotStatus,
@@ -310,6 +312,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       moment: DiaryMoment;
       mood: MoodId;
       intensity: number;
+      energy?: number;
+      sessionLabel?: string;
       text: string;
     }) => {
       const source = getSource();
@@ -318,6 +322,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         moment: input.moment,
         mood: input.mood,
         intensity: input.intensity,
+        energy: input.energy,
+        sessionLabel: input.sessionLabel,
         text: input.text.trim(),
       });
       setSnapshot((prev) => ({ ...prev, diaries: [entry, ...prev.diaries] }));
@@ -339,9 +345,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const recordPlay = useCallback(
-    async (courseId: string, minutes: number) => {
+    async (courseId: string, minutes: number, seconds?: number) => {
       try {
-        const play = await getSource().addPlay(courseId, minutes);
+        const play = await getSource().addPlay(courseId, minutes, seconds);
         setSnapshot((prev) => ({ ...prev, plays: [play, ...prev.plays] }));
       } catch {
         /* a lost play record must never block finishing a meditation */

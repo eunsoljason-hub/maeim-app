@@ -23,11 +23,34 @@ export type PaymentMethodId = "card" | "transfer" | "easypay";
 /** 명상(호흡·바디스캔·수면·마음챙김)과 시각화(장면·빛·내면 이미지) 두 갈래. */
 export type CourseCategory = "meditation" | "visualization";
 
+/** 시각화는 아침 / 비우기 / 소망 세 갈래로 나뉜다. */
+export type VisualizationGroup = "morning" | "release" | "wish";
+
+/** 한 줄의 가이드 나레이션. `at`은 코스 시작 후 경과 초. */
+export interface GuideStep {
+  at: number;
+  label: string;
+  line: string;
+}
+
+/**
+ * 시각화 코스의 가이드 스크립트.
+ * 지금은 화면 자막으로 쓰고, 녹음한 가이드 음성을 `narrationUrl`에 연결하면
+ * 같은 스크립트가 나레이션으로 재생된다.
+ */
+export interface GuideScript {
+  narrator: string;
+  intent: string;
+  steps: GuideStep[];
+}
+
 export interface Course {
   /** Stable identifier used in URLs and the database seed. */
-  id: "c3" | "c10" | "c20" | "vis" | "vis-light" | "vis-garden" | "sleep";
+  id: string;
   /** Which of the two listening categories this course belongs to. */
   category: CourseCategory;
+  /** Only for visualization courses: 아침 / 비우기 / 소망. */
+  group?: VisualizationGroup;
   title: string;
   subtitle: string;
   description: string;
@@ -36,8 +59,12 @@ export interface Course {
   glyph: string;
   tone: "lake" | "forest" | "night";
   tag: string;
-  /** Optional BGM/narration file (R2 signed URL or /audio/*.mp3). */
+  /** Optional narration file (R2 signed URL or /audio/guide/*.mp3). */
   audioUrl: string | null;
+  /** Default background track id from `lib/data/bgm.ts`. */
+  bgmId?: string | null;
+  /** Guide narration script shown in the player and used for the voice slot. */
+  guide?: GuideScript;
   /** Breathing pattern in seconds: inhale – hold – exhale. */
   breath: { inhale: number; hold: number; exhale: number };
   free: boolean;
@@ -55,6 +82,10 @@ export interface DiaryEntry {
   moment: DiaryMoment;
   mood: MoodId;
   intensity: number;
+  /** 오늘의 에너지 1~5 (체크인 값). */
+  energy?: number;
+  /** 어떤 세션을 마치고 남긴 기록인지. */
+  sessionLabel?: string;
   text: string;
 }
 
@@ -63,6 +94,8 @@ export interface PlayRecord {
   userId: string | null;
   courseId: string;
   minutes: number;
+  /** Exact length for a free-form timer session (분:초 기록용). */
+  seconds?: number;
   completedAt: string;
 }
 

@@ -17,6 +17,8 @@ export interface NewDiaryInput {
   moment: DiaryMoment;
   mood: MoodId;
   intensity: number;
+  energy?: number;
+  sessionLabel?: string;
   text: string;
 }
 
@@ -48,7 +50,7 @@ export interface DataSource {
   load(): Promise<Snapshot>;
   addDiary(input: NewDiaryInput): Promise<DiaryEntry>;
   deleteDiary(id: string): Promise<void>;
-  addPlay(courseId: string, minutes: number): Promise<PlayRecord>;
+  addPlay(courseId: string, minutes: number, seconds?: number): Promise<PlayRecord>;
   setSlotStatus(slot: Pick<Slot, "id" | "dateKey" | "time" | "minutes">, status: SlotStatus): Promise<void>;
   createBooking(input: NewBookingInput): Promise<Booking>;
   updateBooking(id: string, patch: Partial<Booking>): Promise<void>;

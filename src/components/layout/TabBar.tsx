@@ -7,8 +7,20 @@ import { useEffect } from "react";
 const TABS = [
   {
     href: "/",
-    label: "명상",
+    label: "내면",
     match: (path: string) => path === "/",
+    icon: (
+      <>
+        <circle cx="12" cy="12" r="3.2" />
+        <path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2" />
+        <path d="M6.2 6.2 7.8 7.8M16.2 16.2l1.6 1.6M17.8 6.2l-1.6 1.6M7.8 16.2l-1.6 1.6" />
+      </>
+    ),
+  },
+  {
+    href: "/meditation",
+    label: "명상",
+    match: (path: string) => path.startsWith("/meditation"),
     icon: (
       <>
         <path d="M4 11.5 12 4l8 7.5" />
@@ -18,37 +30,35 @@ const TABS = [
     ),
   },
   {
-    href: "/player",
-    label: "플레이어",
-    match: (path: string) => path.startsWith("/player"),
+    href: "/visualization",
+    label: "시각화",
+    match: (path: string) => path.startsWith("/visualization"),
     icon: (
       <>
-        <circle cx="12" cy="12" r="8.5" />
-        <path d="M10.4 8.8 16 12l-5.6 3.2z" fill="currentColor" stroke="none" />
+        <path d="M12 3.6 13.9 9l5.5.4-4.2 3.5 1.3 5.4L12 15.4l-4.5 2.9 1.3-5.4L4.6 9.4 10.1 9z" />
+      </>
+    ),
+  },
+  {
+    href: "/affirmations",
+    label: "확언",
+    match: (path: string) => path.startsWith("/affirmations"),
+    icon: (
+      <>
+        <path d="M5 5.5h14v10H10l-5 4z" />
+        <path d="M8.5 9.5h7M8.5 12.5h4.5" />
       </>
     ),
   },
   {
     href: "/diary",
-    label: "마음일기",
+    label: "기록",
     match: (path: string) => path.startsWith("/diary"),
     icon: (
       <>
         <path d="M6 4.5h9.5A2.5 2.5 0 0 1 18 7v13H8.5A2.5 2.5 0 0 1 6 17.5z" />
         <path d="M6 17.5A2.5 2.5 0 0 1 8.5 15H18" />
         <path d="M9.5 8h5" />
-      </>
-    ),
-  },
-  {
-    href: "/counseling",
-    label: "1:1 상담",
-    match: (path: string) => path.startsWith("/counseling"),
-    icon: (
-      <>
-        <path d="M4.5 6.5A2 2 0 0 1 6.5 4.5h11a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H10l-4.5 4v-4h-1z" />
-        <path d="M8.5 9h7" />
-        <path d="M8.5 12h4.5" />
       </>
     ),
   },
