@@ -47,6 +47,7 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
   const finishTimerRef = useRef<number | null>(null);
 
   const positionKey = `maeum.player.position.${course.id}`;
+  const minuteOptions = Array.from(new Set([10, 20, course.minutes])).sort((a, b) => a - b);
   const total = minutes * 60;
   const breath = course.breath;
   const cycle = breath.inhale + breath.hold + breath.exhale;
@@ -371,7 +372,7 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
         <div className="player-panel">
           <p className="panel-label">시간</p>
           <div className="chips">
-            {[10, 20].map((value) => (
+            {minuteOptions.map((value) => (
               <button
                 key={value}
                 className={`chip ${minutes === value ? "on" : ""}`}

@@ -175,7 +175,11 @@ export function HomeScreen() {
           <p>
             {THEMES[recommendation.course.theme].label} · {recommendation.course.subtitle}
           </p>
-          <span className="btn light">명상 시작하기</span>
+          <span className="btn light">
+            {recommendation.course.category === "visualization"
+              ? "시각화 시작하기"
+              : "명상 시작하기"}
+          </span>
         </div>
       </Link>
 
