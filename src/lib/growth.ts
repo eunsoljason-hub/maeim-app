@@ -101,7 +101,7 @@ function emptyRoadmap(): RoadmapItem[] {
 
 export function emptyMandalart(): MandalartState {
   return {
-    center: "나의 핵심 목표",
+    center: "",
     themes: Array.from({ length: 8 }, () => ""),
     actions: Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => "")),
   };
@@ -158,7 +158,7 @@ export function loadGrowth(): GrowthState {
     const mandalartRaw = parsed.mandalart ?? base.mandalart;
     const mandalart: MandalartState = {
       center:
-        typeof mandalartRaw.center === "string" && mandalartRaw.center
+        typeof mandalartRaw.center === "string" && mandalartRaw.center !== "나의 핵심 목표"
           ? mandalartRaw.center.slice(0, 60)
           : base.mandalart.center,
       themes: Array.from({ length: 8 }, (_, i) =>

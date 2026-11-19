@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/LangProvider";
+
 import { useEffect, type ReactNode } from "react";
 
 export function Sheet({
@@ -13,6 +15,7 @@ export function Sheet({
   children: ReactNode;
   labelledBy?: string;
 }) {
+  const { t } = useI18n();
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
@@ -34,7 +37,7 @@ export function Sheet({
         aria-labelledby={labelledBy}
       >
         <div className="sheet-grab" aria-hidden="true" />
-        <button className="sheet-x" onClick={onClose} aria-label="닫기">
+        <button className="sheet-x" onClick={onClose} aria-label={t("common.close")}>
           ✕
         </button>
         {children}

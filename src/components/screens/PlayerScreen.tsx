@@ -39,7 +39,7 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
   const [remaining, setRemaining] = useState(course.minutes * 60);
   const [running, setRunning] = useState(false);
   const [finished, setFinished] = useState(false);
-  const [phase, setPhase] = useState(t("player.waiting"));
+  const [phase, setPhase] = useState("waiting");
   const [beat, setBeat] = useState("");
   const [infoOpen, setInfoOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
@@ -146,7 +146,7 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
     setRunning(false);
     setFinished(true);
     setRemaining(0);
-    setPhase(t("player.still"));
+    setPhase("still");
     setBeat("");
     lastBeatRef.current = "";
     void releaseWakeLock();
@@ -199,23 +199,23 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
       let phaseDuration = breath.inhale;
 
       if (phaseT < breath.inhale) {
-        label = t("player.inhale");
+        label = "inhale";
         local = phaseT;
         phaseDuration = breath.inhale;
         scale = 0.84 + 0.32 * smooth(local / phaseDuration);
       } else if (phaseT < breath.inhale + breath.hold) {
-        label = t("player.hold");
+        label = "hold";
         local = phaseT - breath.inhale;
         phaseDuration = breath.hold;
         scale = 1.16;
       } else {
-        label = t("player.exhale");
+        label = "exhale";
         local = phaseT - breath.inhale - breath.hold;
         phaseDuration = breath.exhale;
         scale = 1.16 - 0.32 * smooth(local / phaseDuration);
       }
 
-      const beatLabel = `${Math.max(1, Math.ceil(phaseDuration - local))}초`;
+      const beatLabel = String(Math.max(1, Math.ceil(phaseDuration - local)));
       if (beatLabel !== lastBeatRef.current) {
         lastBeatRef.current = beatLabel;
         setBeat(beatLabel);
@@ -252,16 +252,16 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
     savePosition(left);
     void releaseWakeLock();
     stopAudio();
-    setPhase(t("player.paused"));
-    setBeat(t("player.tapResume"));
-    lastBeatRef.current = t("player.tapResume");
+    setPhase("paused");
+    setBeat("tap");
+    lastBeatRef.current = "tap";
   };
 
   const reset = () => {
     setRunning(false);
     setFinished(false);
     setRemaining(minutes * 60);
-    setPhase(t("player.waiting"));
+    setPhase("waiting");
     setBeat("");
     lastBeatRef.current = "";
     setResumeAt(null);
@@ -277,7 +277,7 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
     setRemaining(next * 60);
     setRunning(false);
     setFinished(false);
-    setPhase(t("player.waiting"));
+    setPhase("waiting");
     setBeat("");
     setResumeAt(null);
     stopAudio();
@@ -384,8 +384,8 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
             <div className="breath-core" />
           </div>
           <div className="breath-label">
-            <span className="phase">{phase}</span>
-            <span className="beat">{beat}</span>
+            <span className="phase">{t(`player.${phase}`)}</span>
+            <span className="beat">{beat === "tap" ? t("player.tapResume") : beat ? `${beat}${t("common.seconds")}` : ""}</span>
           </div>
         </div>
 
@@ -577,7 +577,7 @@ export function PlayerScreen({ courseId }: { courseId: string }) {
         <Sheet open={guideOpen} onClose={() => setGuideOpen(false)} labelledBy="guide-title">
           <h3 id="guide-title">{t("player.guideTitle", { title: text.title })}</h3>
           <p className="lead">{text.guideIntent}</p>
-          <p className="guide-narrator">{course.guide.narrator}</p>
+          <p className="guide-narrator">{t("player.narrator")}</p>
           <ol className="guide-steps">
             {(text.guideSteps ?? []).map((step, index) => {
               const active = guideStep?.at === step.at && (running || elapsed > 0);

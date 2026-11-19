@@ -250,7 +250,7 @@ export function DiaryScreen() {
       toast(t("diary.voiceDenied"));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toast, voiceSupported]);
+  }, [toast, voiceSupported, t]);
 
   useEffect(() => {
     return () => {

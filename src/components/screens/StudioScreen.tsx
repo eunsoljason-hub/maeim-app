@@ -6,7 +6,9 @@ import { LifeDirectionBanner } from "@/components/practice/LifeDirectionBanner";
 import { ReminderSettingsPanel } from "@/components/studio/ReminderSettings";
 import { WidgetStudio } from "@/components/studio/WidgetStudio";
 import { useI18n } from "@/lib/i18n/LangProvider";
+import { REMINDER_KEY, WIDGET_KEY } from "@/lib/studio";
 import {
+  REMINDER_DEFAULT_MESSAGE,
   defaultReminder,
   defaultWidget,
   loadReminder,
@@ -18,16 +20,32 @@ import {
 } from "@/lib/studio";
 
 export function StudioScreen() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [tab, setTab] = useState<"widgets" | "reminders">("widgets");
   const [widget, setWidget] = useState<WidgetSettings>(defaultWidget);
   const [reminder, setReminder] = useState<ReminderSettings>(defaultReminder);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    setWidget(loadWidget());
-    setReminder(loadReminder());
+    const loadedWidget = loadWidget();
+    const loadedReminder = loadReminder();
+    try {
+      if (!window.localStorage.getItem(WIDGET_KEY)) {
+        loadedWidget.lang = lang;
+        saveWidget(loadedWidget);
+      }
+      if (!window.localStorage.getItem(REMINDER_KEY)) {
+        loadedReminder.lang = lang;
+        loadedReminder.message = REMINDER_DEFAULT_MESSAGE[lang];
+        saveReminder(loadedReminder);
+      }
+    } catch {
+      /* ignore */
+    }
+    setWidget(loadedWidget);
+    setReminder(loadedReminder);
     setReady(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const updateWidget = (next: WidgetSettings) => {

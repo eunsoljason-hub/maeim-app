@@ -262,13 +262,13 @@ export function InnerHubScreen() {
       </div>
       <div className="card consult-teaser">
         <div className="host-avatar" aria-hidden="true">
-          {HOST.initial}
+          {lang === "ko" ? HOST.initial : "E"}
         </div>
         <div className="txt">
           <b>{t("hub.counsel")}</b>
           <p>{t("hub.counselDesc")}</p>
         </div>
-        <CounselButton className="go">{t("hub.enter")} ›</CounselButton>
+        <CounselButton className="go">{t("counsel.cta")}</CounselButton>
       </div>
 
       <div className="hub-links">
